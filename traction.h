@@ -10,6 +10,43 @@
 #ifndef TRACTION_H_
 #define TRACTION_H_
 
+#include "fsl_ftm.h"
+#include "fsl_port.h"
+#include "fsl_clock.h"
 
+#define FLEX_TIMER_TO_USE  FTM0
+#define FLEX_TIMER_CHANNEL 0u
+
+#define PORT_PWM_CH1       PORTC
+#define PIN_PWM_CH1        1u
+#define PORT_ALTERNATIVE   kPORT_MuxAlt4
+#define PORT_CLOCK         kCLOCK_PortC
+
+#define PWM_FRECUENCY      60u
+#define MAX_PWM_PULSE_US   2000u
+#define MIN_PWM_PULSE_US   1000u
+#define MAX_SPEED          500u
+
+typedef enum
+{
+	forward_t,
+	backward_t
+} direction_traction_t;
+
+typedef struct
+{
+	direction_traction_t direction;
+	uint16_t             speed;
+}traction_t;
+
+void traction_init();
+
+void set_speed(traction_t traction);
+
+void increase_speed(traction_t traction);
+
+void decrease_speed(traction_t traction);
+
+void stop_motor();
 
 #endif /* TRACTION_H_ */
