@@ -15,15 +15,16 @@
 #include "fsl_clock.h"
 
 #define FLEX_TIMER_TO_USE  FTM0
-#define FLEX_TIMER_CHANNEL 0u
+#define FLEX_TIMER_CHANNEL kFTM_Chnl_0
 
 #define PORT_PWM_CH1       PORTC
 #define PIN_PWM_CH1        1u
 #define PORT_ALTERNATIVE   kPORT_MuxAlt4
 #define PORT_CLOCK         kCLOCK_PortC
 
-#define PWM_FRECUENCY      60u
+#define PWM_FRECUENCY      200u
 #define MAX_PWM_PULSE_US   2000u
+#define NEUTRAL_PWM_US     1500u
 #define MIN_PWM_PULSE_US   1000u
 #define MAX_SPEED          500u
 

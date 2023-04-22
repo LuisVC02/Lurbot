@@ -14,6 +14,20 @@
 
 int main()
 {
+	CLOCK_SetSimSafeDivs();
+	traction_init();
+	traction_t traction =
+	{
+			forward_t,
+			50
+	};
+	set_speed(traction);
+	traction.speed = 100;
+	set_speed(traction);
+	traction.speed = 50;
+	set_speed(traction);
+	traction.speed = 0;
+	set_speed(traction);
 
 	while(1)
 	{
