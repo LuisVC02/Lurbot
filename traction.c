@@ -11,8 +11,7 @@
 
 #define timeus_to_duty(time) (100*time)/(1000000/PWM_FRECUENCY)
 
-volatile static uint16_t              g_speed = 0;
-volatile static direction_traction_t  g_direction = forward_t;
+volatile static traction_t g_traction = {0, forward_t};
 
 void traction_init()
 {
@@ -45,30 +44,27 @@ void traction_init()
     FTM_StartTimer(FLEX_TIMER_TO_USE, kFTM_SystemClock);
 }
 
-void set_speed(traction_t traction)
+bool set_traction(traction_t traction)
 {
 	if(MAX_SPEED >= traction.speed && 0 <= traction.speed)
 	{
 		uint32_t clock_frec = CLOCK_GetFreq(kCLOCK_BusClk);
-		g_speed = NEUTRAL_PWM_US;
-		g_direction = traction.direction;
-		g_speed += (traction.direction == forward_t)? (traction.speed):(-traction.speed);
-		FLEX_TIMER_TO_USE->CONTROLS[FLEX_TIMER_CHANNEL].CnV = USEC_TO_COUNT(g_speed, clock_frec/2);
+		g_traction.speed = NEUTRAL_PWM_US;
+		g_traction.direction = traction.direction;
+		g_traction.speed += ((traction.direction == forward_t)? (traction.speed):(-traction.speed));
+		FLEX_TIMER_TO_USE->CONTROLS[FLEX_TIMER_CHANNEL].CnV = USEC_TO_COUNT(g_traction.speed, clock_frec/2);
 		FTM_SetSoftwareTrigger(FLEX_TIMER_TO_USE, true);
+		return true;
+	}
+	else
+	{
+		return false;
 	}
 }
 
-void add_speed(traction_t traction)
+traction_t get_traction()
 {
-	int16_t speed_to_add = (traction.direction == forward_t)? (traction.speed):(-traction.speed);
-	uint16_t new_speed = ((int16_t)g_speed + speed_to_add);
-	if(MAX_PWM_PULSE_US >= new_speed && MIN_PWM_PULSE_US <= new_speed)
-	{
-		uint32_t clock_frec = CLOCK_GetFreq(kCLOCK_BusClk);
-		g_speed = new_speed;
-		FLEX_TIMER_TO_USE->CONTROLS[FLEX_TIMER_CHANNEL].CnV = USEC_TO_COUNT(g_speed, clock_frec/2);
-		FTM_SetSoftwareTrigger(FLEX_TIMER_TO_USE, true);
-	}
+	return g_traction;
 }
 
 

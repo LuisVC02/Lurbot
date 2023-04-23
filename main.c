@@ -21,13 +21,13 @@ int main()
 			forward_t,
 			50
 	};
-	set_speed(traction);
+	set_traction(traction);
 	traction.speed = 100;
-	set_speed(traction);
+	set_traction(traction);
 	traction.speed = 50;
-	set_speed(traction);
+	set_traction(traction);
 	traction.speed = 0;
-	set_speed(traction);
+	set_traction(traction);
 
 	while(1)
 	{

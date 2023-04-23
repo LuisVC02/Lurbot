@@ -10,6 +10,8 @@
 #ifndef TRACTION_H_
 #define TRACTION_H_
 
+#include <stdint.h>
+#include <stdbool.h>
 #include "fsl_ftm.h"
 #include "fsl_port.h"
 #include "fsl_clock.h"
@@ -42,9 +44,8 @@ typedef struct
 
 void traction_init();
 
-void set_speed(traction_t traction);
+bool set_traction(traction_t traction);
 
-
-void add_speed(traction_t traction);
+traction_t get_traction();
 
 #endif /* TRACTION_H_ */
