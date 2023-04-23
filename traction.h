@@ -22,7 +22,7 @@
 #define PORT_ALTERNATIVE   kPORT_MuxAlt4
 #define PORT_CLOCK         kCLOCK_PortC
 
-#define PWM_FRECUENCY      200u
+#define PWM_FRECUENCY      50u
 #define MAX_PWM_PULSE_US   2000u
 #define NEUTRAL_PWM_US     1500u
 #define MIN_PWM_PULSE_US   1000u
@@ -37,17 +37,14 @@ typedef enum
 typedef struct
 {
 	direction_traction_t direction;
-	uint16_t             speed;
+	int16_t             speed;
 }traction_t;
 
 void traction_init();
 
 void set_speed(traction_t traction);
 
-void increase_speed(traction_t traction);
 
-void decrease_speed(traction_t traction);
-
-void stop_motor();
+void add_speed(traction_t traction);
 
 #endif /* TRACTION_H_ */
