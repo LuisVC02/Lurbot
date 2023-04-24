@@ -16,6 +16,8 @@
 #include "fsl_port.h"
 #include "fsl_clock.h"
 
+#define timeus_to_duty(time) (100*time)/(1000000/PWM_FRECUENCY)
+
 #define FLEX_TIMER_TO_USE  FTM0
 #define FLEX_TIMER_CHANNEL kFTM_Chnl_0
 
@@ -43,7 +45,9 @@ typedef struct
 	int16_t             speed;
 }traction_t;
 
-typedef traction_t(*function_traction_t)(void);
+typedef void(*function_traction_t)(void);
+
+void init_pwm();
 
 void traction_init();
 

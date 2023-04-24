@@ -24,9 +24,9 @@ void RC_init()
 							 (channel_controller_t*)&g_control_values,
 							 1,
 							 1,
-							 -24,
+							 -32,
 							 1,
-							 24,
+							 32,
 							 false,
 							 0);
 	PIT_Initialization(PIT_module, false, T0, TIME_ERROR_FOR_PIT, u_seconds, true);
@@ -57,9 +57,9 @@ void input_data_control(struct _edma_handle *handle, void *userData, bool transf
 			 (channel_controller_t*)&g_control_values,
 			 1,
 			 1,
-			 -24,
+			 -32,
 			 1,
-			 24,
+			 32,
 			 false,
 			 0);
 	}

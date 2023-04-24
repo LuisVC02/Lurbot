@@ -46,6 +46,14 @@ typedef struct
 	 uint8_t sw3_H;
 	 uint8_t sw4_L;
 	 uint8_t sw4_H;
+	 uint8_t channel_11_L;
+	 uint8_t channel_11_H;
+	 uint8_t channel_12_L;
+	 uint8_t channel_12_H;
+	 uint8_t channel_13_L;
+	 uint8_t channel_13_H;
+	 uint8_t channel_14_L;
+	 uint8_t channel_14_H;
 	 uint8_t final_byte_L;
 	 uint8_t final_byte_H;
 	 bool     good_comunication;
