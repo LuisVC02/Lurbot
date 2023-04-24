@@ -29,6 +29,7 @@
 #define NEUTRAL_PWM_US     1500u
 #define MIN_PWM_PULSE_US   1000u
 #define MAX_SPEED          500u
+#define OFFSET             -150
 
 typedef enum
 {
@@ -42,10 +43,14 @@ typedef struct
 	int16_t             speed;
 }traction_t;
 
+typedef traction_t(*function_traction_t)(void);
+
 void traction_init();
 
-bool set_traction(traction_t traction);
+void set_traction(traction_t traction);
 
 traction_t get_traction();
+
+void set_callback(function_traction_t callback);
 
 #endif /* TRACTION_H_ */
