@@ -17,18 +17,7 @@ void RC_init()
 	UART_initialization(UART_FOR_CONTROL, CONTROL_BAUDRATE, CONTROL_PARITY, CONTROL_STOP_BIT, true, true);
 	set_dmamux(0, uart1_rx, false);
 	DMA_init(0, input_data_control);
-	set_transfer_config(get_data_adress(uart_1),
-							 1,
-							 0,
-							 0,
-							 (channel_controller_t*)&g_control_values,
-							 1,
-							 1,
-							 -32,
-							 1,
-							 32,
-							 false,
-							 0);
+	set_dma_transfer_conf();
 	PIT_Initialization(PIT_module, false, T0, TIME_ERROR_FOR_PIT, u_seconds, true);
 	PIT_callback_init(T0, no_control_request);
 }
@@ -50,18 +39,7 @@ void input_data_control(struct _edma_handle *handle, void *userData, bool transf
 	g_control_values.good_comunication = true;
 	if(g_control_values.start_byte_H != 0x40 || g_control_values.start_byte_L != 0x20)
 	{
-		set_transfer_config(get_data_adress(uart_1),
-			 1,
-			 0,
-			 0,
-			 (channel_controller_t*)&g_control_values,
-			 1,
-			 1,
-			 -32,
-			 1,
-			 32,
-			 false,
-			 0);
+		set_dma_transfer_conf();
 	}
 	else
 	{
@@ -73,9 +51,26 @@ void input_data_control(struct _edma_handle *handle, void *userData, bool transf
 	start_Timer(PIT_module, T0);
 }
 
+void set_dma_transfer_conf()
+{
+	set_transfer_config(get_data_adress(uart_1),
+		 1,
+		 0,
+		 0,
+		 (channel_controller_t*)&g_control_values,
+		 1,
+		 1,
+		 -32,
+		 1,
+		 32,
+		 false,
+		 0);
+}
+
 void no_control_request()
 {
 	g_control_values.good_comunication = false;
+	set_dma_transfer_conf();
 	if(0 != g_control_callback)
 	{
 		g_control_callback(g_control_values);

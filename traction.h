@@ -33,6 +33,10 @@
 #define MAX_SPEED          500u
 #define OFFSET             -150
 
+#define DIVIDER_SPORT      1u
+#define DIVIDER_NORMAL     2u
+#define DIVIDER_SLOW       4u
+
 typedef enum
 {
 	forward_t,
@@ -54,6 +58,12 @@ void traction_init();
 void set_traction(traction_t traction);
 
 traction_t get_traction();
+
+void set_sport_traction();
+
+void set_normal_traction();
+
+void set_slow_traction();
 
 void set_callback(function_traction_t callback);
 

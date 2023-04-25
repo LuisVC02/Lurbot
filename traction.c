@@ -11,8 +11,9 @@
 
 
 
-volatile static traction_t g_traction = {0, forward_t};
-volatile static function_traction_t g_callback = 0;
+volatile static traction_t          g_traction      = {0, forward_t};
+volatile static function_traction_t g_callback      = 0;
+volatile static uint8_t             g_speed_divider = DIVIDER_NORMAL;
 
 void init_pwm()
 {
@@ -61,6 +62,7 @@ void set_traction(traction_t traction)
 	{
 		traction.speed = 0;
 	}
+	traction.speed /= g_speed_divider;
 	uint32_t clock_frec = CLOCK_GetFreq(kCLOCK_BusClk);
 	g_traction.speed = NEUTRAL_PWM_US;
 	g_traction.direction = traction.direction;
@@ -80,6 +82,21 @@ traction_t get_traction()
 	};
 	ret_val.speed = (0 < ret_val.speed)? ret_val.speed : ret_val.speed*-1;
 	return ret_val;
+}
+
+void set_sport_traction()
+{
+	g_speed_divider = DIVIDER_SPORT;
+}
+
+void set_normal_traction()
+{
+	g_speed_divider = DIVIDER_NORMAL;
+}
+
+void set_slow_traction()
+{
+	g_speed_divider = DIVIDER_SLOW;
 }
 
 void set_callback(function_traction_t callback)
