@@ -31,7 +31,7 @@
 #define NEUTRAL_PWM_US     1500u
 #define MIN_PWM_PULSE_US   1000u
 #define MAX_SPEED          500u
-#define OFFSET             -150
+#define OFFSET             -110
 
 #define DIVIDER_SPORT      1u
 #define DIVIDER_NORMAL     2u

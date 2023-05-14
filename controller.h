@@ -69,6 +69,8 @@ channel_controller_t get_contol_values();
 
 void input_data_control(struct _edma_handle *handle, void *userData, bool transferDone, uint32_t tcds);
 
+void set_dma_transfer_conf();
+
 void no_control_request();
 
 #endif /* CONTROLLER_H_ */

@@ -12,6 +12,14 @@
 #include "direction.h"
 #include "controller.h"
 #include "nvic.h"
+#include "line_sensor.h"
+
+#define SPEED_AUTO 300
+#define ANGLE_LEFT_1_AUTO  20
+#define ANGLE_LEFT_2_AUTO  60
+#define ANGLE_RIGHT_1_AUTO -20
+#define ANGLE_RIGHT_2_AUTO -60
+#define ANGLE_NEUTRAL_AUTO 0
 
 typedef enum
 {
@@ -37,7 +45,8 @@ int main()
 	direction_init();
 	set_control_callback(control_values);
 	set_callback(update_motor_and_direction);
-	NVIC_enable_interrupt_and_priotity(DMA_CH0_IRQ, PRIORITY_4);
+	init_sensor();
+	NVIC_enable_interrupt_and_priotity(DMA_CH0_IRQ, PRIORITY_3);
 	NVIC_enable_interrupt_and_priotity(PIT_CH0_IRQ, PRIORITY_4);
 	NVIC_enable_interrupt_and_priotity(FTM0_IRQ, PRIORITY_2);
 	NVIC_global_enable_interrupts;
@@ -71,6 +80,7 @@ void control_values(channel_controller_t channel_values)
 	{
 		traction_value = NEUTRAL_PWM_US;
 		direction_value = NEUTRAL_PWM_DIRECTION;
+		sw_auto_value = MIN_PWM_PULSE_US;
 	}
 	if(NEUTRAL_PWM_US == sw_mode_value)
 	{
@@ -123,5 +133,32 @@ void manual_mode_func()
 
 void auto_mode_func()
 {
-
+	uint8_t values = get_sensorValues();
+	traction_t traction =
+	{
+			forward_t,
+			SPEED_AUTO
+	};
+	g_traction.direction = traction.direction;
+	g_traction.speed     = traction.speed;
+	if(0 != (values >> 3))
+	{
+		g_angle = ANGLE_RIGHT_2_AUTO;
+	}
+	else if(0 != (values >> 2))
+	{
+		g_angle = ANGLE_RIGHT_1_AUTO;
+	}
+	else if(0 != (values >> 1))
+	{
+		g_angle = ANGLE_NEUTRAL_AUTO;
+	}
+	else if(0 != values)
+	{
+		g_angle = ANGLE_LEFT_1_AUTO;
+	}
+	else
+	{
+		g_angle = ANGLE_LEFT_2_AUTO;
+	}
 }

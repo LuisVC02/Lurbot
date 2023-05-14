@@ -53,6 +53,7 @@ void input_data_control(struct _edma_handle *handle, void *userData, bool transf
 
 void set_dma_transfer_conf()
 {
+
 	set_transfer_config(get_data_adress(uart_1),
 		 1,
 		 0,
@@ -70,6 +71,7 @@ void set_dma_transfer_conf()
 void no_control_request()
 {
 	g_control_values.good_comunication = false;
+	stop_Timer(PIT_module, T0);
 	set_dma_transfer_conf();
 	if(0 != g_control_callback)
 	{

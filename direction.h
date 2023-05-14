@@ -34,7 +34,7 @@
 #define MAX_ANGLE                   90
 #define MIN_ANGLE                   -90
 
-#define OFFSET_DIRECTION            -150
+#define OFFSET_DIRECTION            -120
 
 typedef int8_t(*function_direction_t)(void);
 
