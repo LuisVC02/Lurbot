@@ -78,6 +78,6 @@ typedef struct _featureTypeBuff
 	uint8_t featureData;
 }featureTypeBuff_t;
 
-uint8_t* getMainFeatures_LinePixy2();
+featureTypeBuff_t* getMainFeatures_LinePixy2();
 
 #endif /* PIXY2LINETRACKING_H_ */

@@ -9,6 +9,7 @@
 typedef I2C_Type *i2c_modules;
 
 volatile static i2c_port_t g_ports_i2c [3]		= {
+		/*CLK_PORT	   PORT	  SLC  SDA  Alternative	*/
 		{kCLOCK_PortE, PORTE, 24u, 25u, kPORT_MuxAlt5},
 		{kCLOCK_PortC, PORTC, 10u, 11u, kPORT_MuxAlt2},
 		{kCLOCK_PortA, PORTA, 11u, 12u, kPORT_MuxAlt5},
@@ -27,7 +28,14 @@ void I2C_init(i2c_name_t i2c_n, uint32_t baud_rate )
 	port_initialize_i2c(i2c_n);
 
 	i2c_master_config_t masterConfig;
-
+	   /* 	Default baud rate at 100kbps.
+		masterConfig->baudRate_Bps = 100000U;
+			Default stop hold enable is disabled.
+		masterConfig->enableStopHold = false;
+			Default glitch filter value is no filter.
+		masterConfig->glitchFilterWidth = 0U;
+			Enable the I2C peripheral.
+		masterConfig->enableMaster = true;*/
     I2C_MasterGetDefaultConfig(&masterConfig);
     masterConfig.baudRate_Bps = baud_rate;
 
@@ -64,7 +72,7 @@ void port_initialize_i2c(i2c_name_t n_i2c)
 	PORT_SetPinConfig(g_ports_i2c[n_i2c].base, g_ports_i2c[n_i2c].SLC, &pin_config);
 }
 
-status_t read_blocking(i2c_name_t n_i2c, i2c_master_transfer_t *transfer)
+status_t I2C_ReadBlocking(i2c_name_t n_i2c, i2c_master_transfer_t *transfer)
 {
 	return I2C_MasterTransferBlocking(g_i2c[n_i2c], transfer);
 }

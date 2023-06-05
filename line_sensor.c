@@ -33,7 +33,7 @@ uint8_t get_sensorValues()
 	g_line_sensor_transfer.slaveAddress = 0;
 	g_line_sensor_transfer.direction    = kI2C_Read;
 	g_line_sensor_transfer.flags        = kI2C_TransferDefaultFlag;
-	if(kStatus_Success != read_blocking(I2C_0, (i2c_master_transfer_t*)&g_line_sensor_transfer))
+	if(kStatus_Success != I2C_ReadBlocking(I2C_0, (i2c_master_transfer_t*)&g_line_sensor_transfer))
 	{
 		g_line_sensor_value = 0;
 	}

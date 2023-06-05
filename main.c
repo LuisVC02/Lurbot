@@ -13,6 +13,8 @@
 #include "controller.h"
 #include "nvic.h"
 #include "line_sensor.h"
+#include "Pixy2.h"
+#include "Pixy2LineTracking.h"
 
 #define SPEED_AUTO 300
 #define ANGLE_LEFT_1_AUTO  20
@@ -20,6 +22,10 @@
 #define ANGLE_RIGHT_1_AUTO -20
 #define ANGLE_RIGHT_2_AUTO -60
 #define ANGLE_NEUTRAL_AUTO 0
+
+// For camera control --------------------
+#define CENTRAL_POSITION   39
+// ---------------------------------------
 
 typedef enum
 {
@@ -45,7 +51,7 @@ int main()
 	direction_init();
 	set_control_callback(control_values);
 	set_callback(update_motor_and_direction);
-	init_sensor();
+	Init_Pixy2();
 	NVIC_enable_interrupt_and_priotity(DMA_CH0_IRQ, PRIORITY_3);
 	NVIC_enable_interrupt_and_priotity(PIT_CH0_IRQ, PRIORITY_4);
 	NVIC_enable_interrupt_and_priotity(FTM0_IRQ, PRIORITY_2);
@@ -133,32 +139,29 @@ void manual_mode_func()
 
 void auto_mode_func()
 {
-	uint8_t values = get_sensorValues();
-	traction_t traction =
+	uint8_t elements = 0;
+	uint8_t index    = 0;
+	featureTypeBuff_t *camera_data = getMainFeatures_LinePixy2();
+	elements = camera_data->featureLen;
+	vector_t *vectors = (vector_t*)&camera_data->featureData;
+
+	uint8_t firstVector = 0;
+	uint8_t secondVector = 0;
+
+	for(index = 0; index < elements; index ++)
 	{
-			forward_t,
-			SPEED_AUTO
-	};
-	g_traction.direction = traction.direction;
-	g_traction.speed     = traction.speed;
-	if(0 != (values >> 3))
-	{
-		g_angle = ANGLE_RIGHT_2_AUTO;
+		if(1 == vectors[index].m_index)
+		{
+			firstVector = (vectors[index].m_x0 + vectors[index].m_x1)/2;
+		}
+		else if(2 == vectors[index].m_index)
+		{
+			secondVector = (vectors[index].m_x0 + vectors[index].m_x1)/2;
+		}
 	}
-	else if(0 != (values >> 2))
-	{
-		g_angle = ANGLE_RIGHT_1_AUTO;
-	}
-	else if(0 != (values >> 1))
-	{
-		g_angle = ANGLE_NEUTRAL_AUTO;
-	}
-	else if(0 != values)
-	{
-		g_angle = ANGLE_LEFT_1_AUTO;
-	}
-	else
-	{
-		g_angle = ANGLE_LEFT_2_AUTO;
-	}
+	uint8_t central_position = (firstVector + secondVector)/2;
+	int8_t  diference        = central_position-CENTRAL_POSITION;
+	g_angle = diference*2;
+	g_traction.direction = forward_t;
+	g_traction.speed = SPEED_AUTO;
 }

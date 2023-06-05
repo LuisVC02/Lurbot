@@ -26,7 +26,7 @@ volatile static i2c_master_transfer_t g_pixy2TrasferMasterI2C =
 		kI2C_Read,
 		0,
 		PIXY_BUFFERSIZE_TX,
-		g_buffer_rx,
+		(uint8_t*)g_buffer_rx,
 		PIXY_BUFFERSIZE_RX
 };
 
@@ -47,7 +47,7 @@ uint8_t setSendTrasferConf_Pixy2(transferSend_t transferConfig)
 	uint8_t index = 0;
 	for(index = 0; index < transferConfig.payLoadLen; index++)
 	{
-		*(ptrBuffPayLoad+index) = *(transferConfig.buffPayload + index);
+		ptrBuffPayLoad[index] = transferConfig.buffPayload[index];
 	}
 
 	return 0;
@@ -72,7 +72,7 @@ uint8_t sendTrasferConfig_Pixy2()
 	}
 
 	g_pixy2TrasferMasterI2C.subaddress = g_subAddres;
-	retval = I2C_ReadBlocking(I2C_0, &g_pixy2TrasferMasterI2C);
+	retval = I2C_ReadBlocking(I2C_0, (i2c_master_transfer_t*)&g_pixy2TrasferMasterI2C);
 	return retval;
 }
 

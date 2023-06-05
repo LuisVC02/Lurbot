@@ -13,7 +13,7 @@ const uint8_t buffPayloadLineTracking[2] = {
 		LINE_VECTOR
 };
 
-uint8_t* getMainFeatures_LinePixy2(){
+featureTypeBuff_t* getMainFeatures_LinePixy2(){
 
 	static transferSend_t lineTrackingTrasferConfig = {
 			PIXY_NO_CHECKSUM_SYNC & 0xFF,
@@ -29,7 +29,7 @@ uint8_t* getMainFeatures_LinePixy2(){
 	g_vectors_ptr 	= (vector_t*)&g_vectorFeature->featureData;
 
 	sendTrasferConfig_Pixy2();
-	return (uint8_t*)g_vectors_ptr;
+	return (featureTypeBuff_t*)g_vectorFeature;
 }
 
 

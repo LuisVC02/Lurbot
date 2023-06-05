@@ -38,6 +38,6 @@ typedef struct i2c_port
 void port_initialize_i2c(i2c_name_t n_i2c);
 void I2C_init(i2c_name_t n_i2c, uint32_t baud_rate);
 
-status_t read_blocking(i2c_name_t n_i2c, i2c_master_transfer_t *transfer);
+status_t I2C_ReadBlocking(i2c_name_t n_i2c, i2c_master_transfer_t *transfer);
 
 #endif /* i2c_H_ */
