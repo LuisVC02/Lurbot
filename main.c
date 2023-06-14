@@ -28,19 +28,14 @@ int main()
 {
 	// CLOCK initialization ----------------------------------------------------------
 	CLOCK_SetSimSafeDivs();
-	CLOCK_EnableClock(kCLOCK_PortC);
-	CLOCK_EnableClock(kCLOCK_PortA);
 	// -------------------------------------------------------------------------------
 
-	// PORT intialization ------------------------------------------------------------
-	PORT_SetPinMux(PWM1_PORT, PWM1_PIN, kPORT_MuxAlt4);
-	PORT_SetPinMux(PWM2_PORT, PWM2_PIN, kPORT_MuxAlt3);
+	// Traction initialization -------------------------------------------------------
+	init_traction();
 	// -------------------------------------------------------------------------------
 
-	// PWM initialization ------------------------------------------------------------
-	pwm_init(FlexTimer0, kFTM_Prescale_Divide_4);
-	pwm_config(FlexTimer0, kFTM_Chnl_0, kFTM_EdgeAlignedPwm, kFTM_HighTrue, 50, 1500);
-	pwm_config(FlexTimer0, kFTM_Chnl_3, kFTM_EdgeAlignedPwm, kFTM_HighTrue, 50, 2000);
+	// Direction initialization ------------------------------------------------------
+	init_direction();
 	// -------------------------------------------------------------------------------
 
 	// RC initialization -------------------------------------------------------------
@@ -55,7 +50,7 @@ int main()
 
 	while(1)
 	{
-		pwm_set_time(FlexTimer0, kFTM_Chnl_0, 1000);
+
 	}
 	return 0;
 }
