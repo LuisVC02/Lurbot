@@ -23,6 +23,7 @@
 #define NEUTRAL_PWM_DIRECTION       1500
 #define MAX_PWM_DIRECTION           2000
 #define PWM_FRECUENCY_DIRECTION     50
+#define PWM_OFFSET                  -48
 
 #define PWM_TIMER_DIRECTION       FlexTimer0
 #define PWM_CHANNEL_DIRECTION     kFTM_Chnl_3
@@ -33,7 +34,7 @@
 
 void init_direction();
 
-bool set_angle(int8_t angle);
+bool set_angle(int16_t angle);
 
 bool set_pwm_direction_time(uint16_t time);
 

@@ -18,13 +18,14 @@ void init_direction()
 	pwm_config(PWM_TIMER_DIRECTION, PWM_CHANNEL_DIRECTION, kFTM_EdgeAlignedPwm, kFTM_HighTrue, PWM_FRECUENCY_DIRECTION, NEUTRAL_PWM_DIRECTION);
 }
 
-bool set_angle(int8_t angle)
+bool set_angle(int16_t angle)
 {
 	if(MAX_ANGLE_DIRECTION >= angle && MIN_ANGLE_DIRECTION <= angle)
 	{
-		g_angle = angle;
+		g_angle = angle * -1;
 		angle *= ANGLE_TO_PWM_GAIN_DIRECTION;
 		angle += NEUTRAL_PWM_DIRECTION;
+		angle += PWM_OFFSET;
 		pwm_set_time(PWM_TIMER_DIRECTION, PWM_CHANNEL_DIRECTION, angle);
 		return true;
 	}
@@ -35,6 +36,7 @@ bool set_pwm_direction_time(uint16_t time)
 {
 	if(MAX_PWM_DIRECTION >= time && MIN_PWM_DIRECTION <= time)
 	{
+		time += PWM_OFFSET;
 		pwm_set_time(PWM_TIMER_DIRECTION, PWM_CHANNEL_DIRECTION, time);
 		return true;
 	}
