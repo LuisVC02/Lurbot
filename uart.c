@@ -14,9 +14,12 @@ typedef struct
 	PORT_Type *base;
 	uint16_t Rx;
 	uint16_t Tx;
+	uint16_t CTS;
+	uint16_t RTS;
 }uart_port;
 
 volatile static uint32_t  g_send_index[5]      = {0};
+volatile static uint8_t   g_bytes_to_send[5]   = {0};
 volatile static uint8_t  *g_array_to_send[5]   = {0};
 volatile static function  g_callbacks[5]       = {0};
 
@@ -29,11 +32,11 @@ const           uint32_t  uart_clock_sources[] = {
 };
 
 const uart_port g_ports[5]			   		   = {
-		{UART0_PORT_CLOCK, UART0_PORT, UART0_RX, UART0_TX},
-		{UART1_PORT_CLOCK, UART1_PORT, UART1_RX, UART1_TX},
-		{UART2_PORT_CLOCK, UART2_PORT, UART2_RX, UART2_TX},
-		{UART3_PORT_CLOCK, UART3_PORT, UART3_RX, UART3_TX},
-		{UART4_PORT_CLOCK, UART4_PORT, UART4_RX, UART4_TX},
+		{UART0_PORT_CLOCK, UART0_PORT, UART0_RX, UART0_TX, UART0_CTS, UART0_RTS},
+		{UART1_PORT_CLOCK, UART1_PORT, UART1_RX, UART1_TX, UART1_CTS, UART1_RTS},
+		{UART2_PORT_CLOCK, UART2_PORT, UART2_RX, UART2_TX, UART2_CTS, UART2_RTS},
+		{UART3_PORT_CLOCK, UART3_PORT, UART3_RX, UART3_TX, UART3_CTS, UART3_RTS},
+		{UART4_PORT_CLOCK, UART4_PORT, UART4_RX, UART4_TX, UART4_CTS, UART4_RTS},
 };
 const       uart_modules  g_uarts[6]             = {UART0, UART1, UART2, UART3, UART4};
 
@@ -44,6 +47,8 @@ void PORT_initialization(n_uart_t n_uart)
 	CLOCK_EnableClock(g_ports[(uint8_t)n_uart].clock_port);
 	PORT_SetPinMux(g_ports[(uint8_t)n_uart].base, g_ports[(uint8_t)n_uart].Rx, kPORT_MuxAlt3);
 	PORT_SetPinMux(g_ports[(uint8_t)n_uart].base, g_ports[(uint8_t)n_uart].Tx, kPORT_MuxAlt3);
+	/*PORT_SetPinMux(g_ports[(uint8_t)n_uart].base, g_ports[(uint8_t)n_uart].CTS, kPORT_MuxAlt3);
+	PORT_SetPinMux(g_ports[(uint8_t)n_uart].base, g_ports[(uint8_t)n_uart].RTS, kPORT_MuxAlt3);*/
 }
 // ------------------------------------------------------------------
 
@@ -80,7 +85,7 @@ void UART_initialization(n_uart_t n_uart, uint32_t baudrate, uart_parity_mode_t 
 }
 // -----------------------------------------------------------------------------------------
 
-// UART RX value ----------------------------------------------------------------------------
+// UART RX & TX value ------------------------------------------------------------------------
 uint8_t *get_data_adress(n_uart_t n_uart)
 {
 	return (uint8_t*)&(g_uarts[n_uart]->D);
@@ -88,10 +93,22 @@ uint8_t *get_data_adress(n_uart_t n_uart)
 // ------------------------------------------------------------------------------------------
 
 // UART init with configuration -------------------------------------------------------------
-void UART_initialization_conf(n_uart_t n_uart, uart_config_t configuration)
+void UART_initialization_conf(n_uart_t n_uart, uart_config_t configuration, bool enable_interrupts, bool dma_enable)
 {
 	PORT_initialization((uint8_t)n_uart);
 	UART_Init(g_uarts[(uint8_t)n_uart], &configuration, CLOCK_GetFreq(uart_clock_sources[(uint8_t)n_uart]));
+	if(true == enable_interrupts)
+	{
+		UART_EnableInterrupts(g_uarts[(uint8_t)n_uart], kUART_TxDataRegEmptyInterruptEnable); // Interrupt for reception
+		if(true ==  dma_enable)
+		{
+			UART_EnableTxDMA(g_uarts[(uint8_t)n_uart], true);
+		}
+		else
+		{
+			UART_EnableTxDMA(g_uarts[(uint8_t)n_uart], false);
+		}
+	}
 }
 // ------------------------------------------------------------------------------------------
 
@@ -131,13 +148,15 @@ void UART_send_array_blocking(n_uart_t n_uart, uint8_t *array)
 }
 // This function sends array in UART --------------------------------
 // This array have to have end line character (0)
-void UART_send_array_unblocking(n_uart_t n_uart, uint8_t *array)
+void UART_send_array_unblocking(n_uart_t n_uart, uint8_t n_bytes, uint8_t *array)
 {
 	uint8_t value;
 	g_send_index[(uint8_t)n_uart] = 0;
 	g_array_to_send[(uint8_t)n_uart] = array;
+	g_send_index[(uint8_t)n_uart] = 0;
+	g_bytes_to_send[(uint8_t)n_uart] = n_bytes;
 	value = g_array_to_send[(uint8_t)n_uart][g_send_index[(uint8_t)n_uart]];
-	if(0 != value)
+	if(0 != n_bytes)
 	{
 		UART_WriteByte(g_uarts[(uint8_t)n_uart], value);
 		UART_EnableInterrupts(g_uarts[(uint8_t)n_uart], kUART_TxDataRegEmptyInterruptEnable);
@@ -160,7 +179,7 @@ void Interrupts(n_uart_t n_uart)
 	uint8_t value = 0;
 	if(kUART_TxDataRegEmptyFlag == (kUART_TxDataRegEmptyFlag & status))
 	{
-		if(0 != ((g_array_to_send[(uint8_t)n_uart])[g_send_index[(uint8_t)n_uart]]) && (MAX_SEND_LENGTH > g_send_index[(uint8_t)n_uart]))
+		if((g_send_index[(uint8_t)n_uart] < g_bytes_to_send[(uint8_t)n_uart]) && (MAX_SEND_LENGTH > g_send_index[(uint8_t)n_uart]))
 		{
 			UART_WriteByte(g_uarts[(uint8_t)n_uart], g_array_to_send[(uint8_t)n_uart][g_send_index[(uint8_t)n_uart]]);
 			g_send_index[(uint8_t)n_uart] ++;

@@ -25,7 +25,7 @@
 #define PWM_FRECUENCY_DIRECTION     50
 #define PWM_OFFSET                  -48
 
-#define PWM_TIMER_DIRECTION       FlexTimer0
+#define PWM_TIMER_DIRECTION       FlexTimer0_PWM
 #define PWM_CHANNEL_DIRECTION     kFTM_Chnl_3
 #define PWM_PORT_DIRECTION        PORTA
 #define PWM_PIN_DIRECTION         6
