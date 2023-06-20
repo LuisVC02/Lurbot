@@ -7,10 +7,12 @@
  */
 #include "input_capture.h"
 
-volatile static uint32_t g_clock_frec                          =  1;
-volatile static uint32_t g_prescaler[N_TIMERS_IC]              = {0};
-volatile static bool     g_init[N_TIMERS_IC]                   = {0};
-volatile static bool     g_updated[N_TIMERS_IC][N_CHANNELS_IC] = {0};
+volatile static uint32_t g_clock_frec                            =  1;
+volatile static uint32_t g_prescaler[N_TIMERS_IC]                = {0};
+volatile static bool     g_init[N_TIMERS_IC]                     = {0};
+volatile static bool     g_updated[N_TIMERS_IC][N_CHANNELS_IC]   = {0};
+volatile static int32_t g_max_count[N_TIMERS_IC][N_CHANNELS_IC]  = {0};
+volatile static int32_t g_last_value[N_TIMERS_IC][N_CHANNELS_IC] = {0};
 
 volatile static uint32_t g_input_capture[N_TIMERS_IC][N_CHANNELS_IC]    = {0};
 
@@ -41,12 +43,11 @@ void init_input_capture(flex_timer_ic_t timer, ftm_chnl_t channel, ftm_clock_pre
 		// Configurations -----------------------------------------
 		config.prescale = prescaler;
 		g_prescaler[timer] = 1 << prescaler;
-		config.bdmMode = kFTM_BdmMode_3;
 		// --------------------------------------------------------
 
 		// Enables Flex timer -------------------------------------
 		FTM_Init(base, &config);
-		FTM_EnableInterrupts(base, kFTM_Chnl0InterruptEnable);
+		FTM_EnableInterrupts(base, kFTM_Chnl0InterruptEnable|kFTM_TimeOverflowInterruptEnable);
 		// --------------------------------------------------------
 
 		g_init[timer] = true;
@@ -59,10 +60,12 @@ void config_input_capture(flex_timer_ic_t timer, ftm_chnl_t chnlNumber, ftm_inpu
 {
 	static FTM_Type * base;
 	base = (FTM_Type*)g_flex_timers_ic[timer];
+	uint16_t count = USEC_TO_COUNT(time_us, g_clock_frec/g_prescaler[timer]);
+	g_max_count[timer][chnlNumber] = count;
 
 	FTM_StopTimer(base);
 	FTM_SetupInputCapture(base, chnlNumber, captureMode, filterValue);
-	FTM_SetTimerPeriod(base, USEC_TO_COUNT(time_us, g_clock_frec/g_prescaler[timer]));
+	FTM_SetTimerPeriod(base, count);
 	FTM_StartTimer(base, kFTM_SystemClock);
 }
 
@@ -89,6 +92,10 @@ void FTM1_IRQHandler()
 void FTM2_IRQHandler()
 {
 	uint32_t status_flags = FTM_GetStatusFlags(FTM2);
+	int32_t result       = 0;
+	int32_t new_value    = 0;
+	int32_t last_value   = g_last_value[FlexTimer2_IC][0];
+	int32_t max_count    = g_max_count[FlexTimer2_IC][0];
 	if(kFTM_TimeOverflowFlag == (status_flags & kFTM_TimeOverflowFlag))
 	{
 		g_input_capture[FlexTimer2_IC][0] = 0;
@@ -96,8 +103,15 @@ void FTM2_IRQHandler()
 	}
 	if(kFTM_Chnl0Flag == (status_flags & kFTM_Chnl0Flag))
 	{
-		g_input_capture[FlexTimer2_IC][0] = FTM_GetInputCaptureValue(FTM2, 0);
-		FTM2->CNT = 0;
+		new_value = FTM_GetInputCaptureValue(FTM2, 0);
+		result = new_value - last_value;
+		result = (result < 0)? (max_count+result):result;
+		g_last_value[FlexTimer2_IC][0] = new_value;
+		if(result > 200)
+		{
+			g_input_capture[FlexTimer2_IC][0] = result;
+		}
+		//telemetry_send_unblocking(2, (uint8_t*)&g_input_capture[FlexTimer2_IC][0]);
 		FTM_ClearStatusFlags(FTM2, kFTM_Chnl0Flag);
 	}
 }

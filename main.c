@@ -30,11 +30,10 @@
 
 void automatic_mode();
 void manual_mode();
-void transfer_data();
 
 volatile static channel_controller_t g_control_values;
 volatile static uint8_t              g_speed_divisor   = 1;
-volatile static speed_sensor_values_t g_speed_values = {0};
+
 
 int main()
 {
@@ -60,8 +59,6 @@ int main()
 
 	// TELEMETRY initialization ------------------------------------------------------
 	telemetry_init();
-	PIT_Initialization(PIT, false, kPIT_Chnl_2, 1000000, u_seconds, true);
-	PIT_callback_init(kPIT_Chnl_2, transfer_data);
 	// -------------------------------------------------------------------------------
 
 	// NVIC intialization ------------------------------------------------------------
@@ -118,14 +115,14 @@ int main()
 			set_speed(0);
 			set_angle(0);
 		}
-		g_speed_values = get_speed_sensor();
+
 	}
 	return 0;
 }
 
 void automatic_mode()
 {
-	//set_speed(0);
+	set_speed(3.7);
 	set_angle(0);
 }
 
@@ -146,7 +143,3 @@ void manual_mode()
 	set_pwm_direction_time(angle);
 }
 
-void transfer_data()
-{
-	telemetry_send_unblocking(2, (uint8_t*)&g_speed_values);
-}

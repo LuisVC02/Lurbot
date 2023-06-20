@@ -10,6 +10,7 @@
 
 #include "fsl_ftm.h"
 #include "dma.h"
+#include "telemetry.h"
 
 #define N_TIMERS_IC    4
 #define N_CHANNELS_IC  8
