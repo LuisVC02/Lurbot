@@ -8,7 +8,7 @@
 
 #include "speed_sensor.h"
 
-#define FTM_FRECUENCY       875000.0
+#define FTM_FRECUENCY       437500.0
 #define RELATION_CALCULATED 20417 // Divide this with input capture, results in speed in m/s
 
 volatile static speed_sensor_values_t g_values = {0};
@@ -28,7 +28,7 @@ void init_speed_sensor()
 	CLOCK_EnableClock(SPEED_SENSOR_PORT_CLOCK);
 	PORT_SetPinConfig(SPEED_SENSOR_PORT, SPEED_SENSOR_PIN, &in_config);
 	init_input_capture(SPEED_SENSOR_FTM, SPEED_SENSOR_CHANNEL, SPEED_SENSOR_PRESCALER);
-	config_input_capture(SPEED_SENSOR_FTM, SPEED_SENSOR_CHANNEL, kFTM_RisingEdge, 0, 60000);
+	config_input_capture(SPEED_SENSOR_FTM, SPEED_SENSOR_CHANNEL, kFTM_FallingEdge, 0, 100000);
 }
 
 

@@ -12,13 +12,16 @@
 #include "fsl_port.h"
 #include "fsl_clock.h"
 #include "pwm_controller.h"
+#include "speed_sensor.h"
+#include "telemetry.h"
+#include "pit.h"
 #include <stdint.h>
 #include <stdbool.h>
 
 #define MAX_SPEED_TRACTION 50   // In km/hr
 #define MIN_SPEED_TRACTION -30  // In km/hr
 
-#define SPEED_TO_PWM_GAIN_TRACTION 10
+#define SPEED_TO_PWM_GAIN_TRACTION 20.0
 #define MIN_PWM_TRACTION           1000
 #define NEUTRAL_PWM_TRACTION       1500
 #define MAX_PWM_TRACTION           2000
