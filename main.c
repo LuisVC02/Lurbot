@@ -16,7 +16,10 @@
 #include "traction.h"
 #include "direction.h"
 #include "rc_control.h"
+#include "speed_sensor.h"
 #include "telemetry.h"
+#include "pit.h"
+#include "uart.h"
 
 #define AUTO_MODE_CONTROL_VALUE   2000
 #define MANUAL_MODE_CONTROL_VALUE 1000
@@ -27,9 +30,11 @@
 
 void automatic_mode();
 void manual_mode();
+void transfer_data();
 
 volatile static channel_controller_t g_control_values;
-volatile static uint8_t              g_speed_divisor  = 1;
+volatile static uint8_t              g_speed_divisor   = 1;
+
 
 int main()
 {
@@ -49,10 +54,21 @@ int main()
 	RC_init();
 	// -------------------------------------------------------------------------------
 
+	// Speed sensor initialization ---------------------------------------------------
+	init_speed_sensor();
+	// -------------------------------------------------------------------------------
+
+	// TELEMETRY initialization ------------------------------------------------------
+	telemetry_init();
+	// -------------------------------------------------------------------------------
+
 	// NVIC intialization ------------------------------------------------------------
 	NVIC_enable_interrupt_and_priotity(DMA_CH0_IRQ, PRIORITY_3);
 	NVIC_enable_interrupt_and_priotity(PIT_CH0_IRQ, PRIORITY_4);
 	NVIC_enable_interrupt_and_priotity(FTM0_IRQ, PRIORITY_2);
+	NVIC_enable_interrupt_and_priotity(FTM2_IRQ, PRIORITY_5);
+	NVIC_enable_interrupt_and_priotity(UART4_IRQ, PRIORITY_5);
+	NVIC_enable_interrupt_and_priotity(PIT_CH2_IRQ, PRIORITY_6);
 	NVIC_global_enable_interrupts;
 	// -------------------------------------------------------------------------------
 
@@ -100,13 +116,14 @@ int main()
 			set_speed(0);
 			set_angle(0);
 		}
+
 	}
 	return 0;
 }
 
 void automatic_mode()
 {
-	set_speed(0);
+	set_speed(4);
 	set_angle(0);
 }
 
@@ -125,4 +142,9 @@ void manual_mode()
 
 	set_pwm_traction_time(speed);
 	set_pwm_direction_time(angle);
+}
+
+void transfer_data()
+{
+	//telemetry_send_unblocking(2, (uint8_t*)&g_speed_values);
 }

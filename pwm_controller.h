@@ -17,16 +17,16 @@
 
 typedef enum
 {
-	FlexTimer0,
-	FlexTimer1,
-	FlexTimer2,
-	FlexTimer3
-}flex_timer_t;
+	FlexTimer0_PWM,
+	FlexTimer1_PWM,
+	FlexTimer2_PWM,
+	FlexTimer3_PWM
+}flex_timer_pwm_t;
 
-void pwm_init(flex_timer_t timer, ftm_clock_prescale_t prescaler);
+void pwm_init(flex_timer_pwm_t timer, ftm_clock_prescale_t prescaler);
 
-void pwm_config(flex_timer_t timer, ftm_chnl_t channel, ftm_pwm_mode_t pwm_mode, ftm_pwm_level_select_t level, uint32_t frecuency, uint32_t time_us);
+void pwm_config(flex_timer_pwm_t timer, ftm_chnl_t channel, ftm_pwm_mode_t pwm_mode, ftm_pwm_level_select_t level, uint32_t frecuency, uint32_t time_us);
 
-void pwm_set_time(flex_timer_t timer, ftm_chnl_t channel, uint32_t time_us);
+void pwm_set_time(flex_timer_pwm_t timer, ftm_chnl_t channel, uint32_t time_us);
 
 #endif /* PWM_CONTROLLER_H_ */

@@ -10,7 +10,7 @@
 #include <stdbool.h>
 
 
-const FTM_Type * g_flex_timers[N_TIMERS] =
+const FTM_Type * g_flex_timers_pwm[N_TIMERS] =
 {
 		FTM0,
 		FTM1,
@@ -27,11 +27,11 @@ volatile static bool     g_time_change[N_TIMERS][N_CHANNELS] = {0};
 
 
 
-void pwm_init(flex_timer_t timer, ftm_clock_prescale_t prescaler)
+void pwm_init(flex_timer_pwm_t timer, ftm_clock_prescale_t prescaler)
 {
 	static FTM_Type * base;
 	static ftm_config_t config;
-	base = (FTM_Type*)g_flex_timers[timer];
+	base = (FTM_Type*)g_flex_timers_pwm[timer];
 	// Check if timer was initialized ----------------------------------
 	if(false == g_init[timer])
 	{
@@ -56,9 +56,9 @@ void pwm_init(flex_timer_t timer, ftm_clock_prescale_t prescaler)
 	// -----------------------------------------------------------------
 }
 
-void pwm_config(flex_timer_t timer, ftm_chnl_t channel, ftm_pwm_mode_t pwm_mode, ftm_pwm_level_select_t level, uint32_t frecuency, uint32_t time_us)
+void pwm_config(flex_timer_pwm_t timer, ftm_chnl_t channel, ftm_pwm_mode_t pwm_mode, ftm_pwm_level_select_t level, uint32_t frecuency, uint32_t time_us)
 {
-	FTM_Type * base = (FTM_Type*)g_flex_timers[timer];
+	FTM_Type * base = (FTM_Type*)g_flex_timers_pwm[timer];
 	ftm_chnl_pwm_signal_param_t pwm_config =
 	{
 			channel,
@@ -76,7 +76,7 @@ void pwm_config(flex_timer_t timer, ftm_chnl_t channel, ftm_pwm_mode_t pwm_mode,
 	FTM_StartTimer(base, kFTM_SystemClock);
 }
 
-void pwm_set_time(flex_timer_t timer, ftm_chnl_t channel, uint32_t time_us)
+void pwm_set_time(flex_timer_pwm_t timer, ftm_chnl_t channel, uint32_t time_us)
 {
 	if(g_new_time[timer][channel] != time_us)
 	{
@@ -85,9 +85,9 @@ void pwm_set_time(flex_timer_t timer, ftm_chnl_t channel, uint32_t time_us)
 	}
 }
 
-void pwm_set(flex_timer_t timer, ftm_chnl_t channel, uint32_t time_us)
+void pwm_set(flex_timer_pwm_t timer, ftm_chnl_t channel, uint32_t time_us)
 {
-	FTM_Type * base = (FTM_Type*)g_flex_timers[timer];
+	FTM_Type * base = (FTM_Type*)g_flex_timers_pwm[timer];
 
 	FTM_StopTimer(base);
 	base->CONTROLS[channel].CnV = USEC_TO_COUNT(time_us, g_clock_frec/g_prescaler[timer]);
@@ -96,7 +96,7 @@ void pwm_set(flex_timer_t timer, ftm_chnl_t channel, uint32_t time_us)
 	FTM_StartTimer(base, kFTM_SystemClock);
 }
 
-void update_channels(flex_timer_t timer)
+void update_channels(flex_timer_pwm_t timer)
 {
 	uint8_t channel = 0;
 
@@ -114,24 +114,26 @@ void update_channels(flex_timer_t timer)
 
 void FTM0_IRQHandler()
 {
-	update_channels(FlexTimer0);
+	update_channels(FlexTimer0_PWM);
 	FTM_ClearStatusFlags(FTM0, kFTM_TimeOverflowFlag);
 }
 
+/*
 void FTM1_IRQHandler()
 {
-	update_channels(FlexTimer1);
+	update_channels(FlexTimer1_PWM);
 	FTM_ClearStatusFlags(FTM1, kFTM_TimeOverflowFlag);
 }
 
 void FTM2_IRQHandler()
 {
-	update_channels(FlexTimer2);
+	update_channels(FlexTimer2_PWM);
 	FTM_ClearStatusFlags(FTM2, kFTM_TimeOverflowFlag);
 }
 
 void FTM3_IRQHandler()
 {
-	update_channels(FlexTimer3);
+	update_channels(FlexTimer3_PWM);
 	FTM_ClearStatusFlags(FTM3, kFTM_TimeOverflowFlag);
 }
+*/
