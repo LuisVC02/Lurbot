@@ -24,7 +24,7 @@
 #define MAX_PWM_TRACTION           2000
 #define PWM_FRECUENCY_TRACTION     50
 
-#define PWM_TIMER_TRACTION       FlexTimer0
+#define PWM_TIMER_TRACTION       FlexTimer0_PWM
 #define PWM_CHANNEL_TRACTION     kFTM_Chnl_0
 #define PWM_PORT_TRACTION        PORTC
 #define PWM_PIN_TRACTION         1
@@ -36,8 +36,6 @@ void init_traction();
 bool set_speed(int16_t speed);
 
 bool set_pwm_traction_time(uint16_t time);
-
-int8_t get_speed_sensor();
 
 int8_t get_speed();
 

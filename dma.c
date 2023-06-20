@@ -11,8 +11,10 @@
 /***************************************************************
                        GLOBAL VARIABLES
 ****************************************************************/
-AT_QUICKACCESS_SECTION_DATA_ALIGN(edma_tcd_t g_tcdMemoryPoolPtr[TCD_QUEUE_SIZE + 1], sizeof(edma_tcd_t));
+AT_QUICKACCESS_SECTION_DATA_ALIGN(edma_tcd_t g_tcdMemoryPoolPtr[TCD_QUEUE_SIZE + 1], sizeof(edma_tcd_t)*2);
 volatile static edma_handle_t EDMA_Handle;
+volatile static bool          g_initialized = false;
+volatile static bool          g_initialized_mux = false;
 /***************************************************************
                      END GLOBAL VARIABLES
 ****************************************************************/
@@ -30,19 +32,32 @@ void DMA_init(uint32_t channel, edma_callback callback)
 	{
 			false, // enable continuous link mode
 			true,  // enable halt on error
-			false, // enable round robin arbitration
+			true, // enable round robin arbitration
 			false  // enable debug mode
 	};
 
+	if(false == g_initialized)
+	{
+		EDMA_Init(DMA0, &edma_config);
+		g_initialized = true;
+	}
 
-	EDMA_Init(DMA0, &edma_config);
+
     if(callback != NULL)
     {
 		EDMA_CreateHandle((edma_handle_t*)&EDMA_Handle, DMA0, channel);
 		EDMA_SetCallback((edma_handle_t*)&EDMA_Handle, callback, NULL);
 	    EDMA_ResetChannel(EDMA_Handle.base, EDMA_Handle.channel);
-		EDMA_TcdEnableInterrupts(&g_tcdMemoryPoolPtr[channel], kEDMA_MajorInterruptEnable);
-		EDMA_InstallTCD(DMA0, channel, &g_tcdMemoryPoolPtr[channel]);
+		EDMA_TcdEnableInterrupts(g_tcdMemoryPoolPtr, kEDMA_MajorInterruptEnable);
+		EDMA_InstallTCD(DMA0, channel, g_tcdMemoryPoolPtr);
+		EDMA_EnableChannelRequest(DMA0, channel);
+    }
+    else
+    {
+		EDMA_CreateHandle((edma_handle_t*)&EDMA_Handle, DMA0, channel);
+		EDMA_SetCallback((edma_handle_t*)&EDMA_Handle, NULL, NULL);
+	    EDMA_ResetChannel(EDMA_Handle.base, EDMA_Handle.channel);
+		EDMA_InstallTCD(DMA0, channel, g_tcdMemoryPoolPtr);
 		EDMA_EnableChannelRequest(DMA0, channel);
     }
 }
@@ -81,6 +96,7 @@ void set_transfer_config(void *src_Addr,
 						 uint32_t channel)
 {
 	edma_transfer_config_t transfer_config;
+
 	EDMA_PrepareTransferConfig(&transfer_config,
 	                                src_Addr,
 	                                src_size,
@@ -91,10 +107,10 @@ void set_transfer_config(void *src_Addr,
 	                                bytesEachRequest,
 	                                transferBytes);
 
-	EDMA_TcdSetMajorOffsetConfig(&g_tcdMemoryPoolPtr[channel], src_offset_major,  dest_offset_major);
-	EDMA_TcdSetTransferConfig(&g_tcdMemoryPoolPtr[channel], &transfer_config, NULL);
-	EDMA_TcdEnableAutoStopRequest(&g_tcdMemoryPoolPtr[channel], enable_auto_stop_major);
-	EDMA_InstallTCD(DMA0, channel, &g_tcdMemoryPoolPtr[channel]);
+	EDMA_TcdSetMajorOffsetConfig(g_tcdMemoryPoolPtr, src_offset_major,  dest_offset_major);
+	EDMA_TcdSetTransferConfig(g_tcdMemoryPoolPtr, &transfer_config, NULL);
+	EDMA_TcdEnableAutoStopRequest(g_tcdMemoryPoolPtr, enable_auto_stop_major);
+	EDMA_InstallTCD(DMA0, channel, g_tcdMemoryPoolPtr);
 	EDMA_EnableChannelRequest(DMA0, channel);
 }
 
@@ -106,7 +122,12 @@ void set_transfer_config(void *src_Addr,
  */
 void set_dmamux(uint32_t channel, dmamux_src_t source, bool period_trigger)
 {
-	DMAMUX_Init(DMAMUX0);
+
+	if(false == g_initialized_mux)
+	{
+		DMAMUX_Init(DMAMUX0);
+		g_initialized_mux = true;
+	}
 	DMAMUX_SetSource(DMAMUX0, channel, (uint32_t)source);
 	if(MAX_TRIGGER_CHANEL >= channel)
 	{

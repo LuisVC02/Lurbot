@@ -42,10 +42,6 @@ bool set_pwm_traction_time(uint16_t time)
 	return false;
 }
 
-int8_t get_speed_sensor()
-{
-	return 0;
-}
 
 int8_t get_speed()
 {

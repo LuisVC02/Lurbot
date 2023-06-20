@@ -34,20 +34,30 @@
 // ------------------------------
 
 // Pins for UARTS ---------------
-#define UART0_RX 16u
-#define UART0_TX 17u
+#define UART0_RX  16u
+#define UART0_TX  17u
+#define UART0_CTS 15u
+#define UART0_RTS 14u
 
 #define UART1_RX 3u
 #define UART1_TX 4u
+#define UART1_CTS 2u
+#define UART1_RTS 1u
 
 #define UART2_RX 3u
 #define UART2_TX 4u
+#define UART2_CTS 2u
+#define UART2_RTS 1u
 
 #define UART3_RX 16u
 #define UART3_TX 17u
+#define UART3_CTS 15u
+#define UART3_RTS 14u
 
 #define UART4_RX 14u
 #define UART4_TX 15u
+#define UART4_CTS 13u
+#define UART4_RTS 12u
 
 // ------------------------------
 
@@ -83,7 +93,7 @@ uint8_t *get_data_adress(n_uart_t n_uart);
 // ------------------------------------------------------------------------------------------
 
 // UART init with configuration -------------------------------------
-void UART_initialization_conf(n_uart_t n_uart, uart_config_t configuration);
+void UART_initialization_conf(n_uart_t n_uart, uart_config_t configuration, bool enable_interrupts, bool dma_enable);
 // ------------------------------------------------------------------
 
 // This function is for configure interrupts ------------------------
@@ -100,8 +110,7 @@ void UART_send_array_blocking(n_uart_t n_uart, uint8_t *array);
 // ------------------------------------------------------------------
 
 // This function sends array in UART --------------------------------
-// This array have to have end line character (0)
-void UART_send_array_unblocking(n_uart_t n_uart, uint8_t *array);
+void UART_send_array_unblocking(n_uart_t n_uart, uint8_t n_bytes, uint8_t *array);
 // ------------------------------------------------------------------
 
 // Callback set -----------------------------------------------------
