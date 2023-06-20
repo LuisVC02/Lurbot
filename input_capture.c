@@ -107,8 +107,11 @@ void FTM2_IRQHandler()
 		result = new_value - last_value;
 		result = (result < 0)? (max_count+result):result;
 		g_last_value[FlexTimer2_IC][0] = new_value;
-		g_input_capture[FlexTimer2_IC][0] = result;
-		telemetry_send_unblocking(2, (uint8_t*)&g_input_capture[FlexTimer2_IC][0]);
+		if(result > 200)
+		{
+			g_input_capture[FlexTimer2_IC][0] = result;
+		}
+		//telemetry_send_unblocking(2, (uint8_t*)&g_input_capture[FlexTimer2_IC][0]);
 		FTM_ClearStatusFlags(FTM2, kFTM_Chnl0Flag);
 	}
 }

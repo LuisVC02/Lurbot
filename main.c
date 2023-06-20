@@ -30,7 +30,6 @@
 
 void automatic_mode();
 void manual_mode();
-void transfer_data();
 
 volatile static channel_controller_t g_control_values;
 volatile static uint8_t              g_speed_divisor   = 1;
@@ -123,7 +122,7 @@ int main()
 
 void automatic_mode()
 {
-	set_speed(4);
+	set_speed(3.7);
 	set_angle(0);
 }
 
@@ -144,7 +143,3 @@ void manual_mode()
 	set_pwm_direction_time(angle);
 }
 
-void transfer_data()
-{
-	//telemetry_send_unblocking(2, (uint8_t*)&g_speed_values);
-}

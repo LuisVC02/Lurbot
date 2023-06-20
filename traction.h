@@ -21,7 +21,7 @@
 #define MAX_SPEED_TRACTION 50   // In km/hr
 #define MIN_SPEED_TRACTION -30  // In km/hr
 
-#define SPEED_TO_PWM_GAIN_TRACTION 20.0
+#define SPEED_TO_PWM_GAIN_TRACTION 30.0
 #define MIN_PWM_TRACTION           1000
 #define NEUTRAL_PWM_TRACTION       1500
 #define MAX_PWM_TRACTION           2000
@@ -34,9 +34,16 @@
 #define PWM_ALTERNATIVE_TRACTION kPORT_MuxAlt4
 #define PORT_CLOCK_TRACTION      kCLOCK_PortC
 
+typedef struct _values_to_send_t
+{
+	uint32_t ftm_count;
+	uint32_t speed_x1000;
+	uint32_t speed_sensor_x1000;
+} values_to_send_t;
+
 void init_traction();
 
-bool set_speed(int16_t speed);
+bool set_speed(float speed);
 
 bool set_pwm_traction_time(uint16_t time);
 
