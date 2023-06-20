@@ -20,7 +20,7 @@
 
 #define SPEED_SENSOR_FTM       FlexTimer2_IC
 #define SPEED_SENSOR_CHANNEL   kFTM_Chnl_0
-#define SPEED_SENSOR_PRESCALER kFTM_Prescale_Divide_16
+#define SPEED_SENSOR_PRESCALER kFTM_Prescale_Divide_8
 
 typedef struct _speed_sensor_values_t
 {

@@ -8,7 +8,7 @@
 
 #include "speed_sensor.h"
 
-#define FTM_FRECUENCY       437500.0
+#define FTM_FRECUENCY       875000.0
 #define RELATION_CALCULATED 20417 // Divide this with input capture, results in speed in m/s
 
 volatile static speed_sensor_values_t g_values = {0};

@@ -46,7 +46,7 @@ void init_input_capture(flex_timer_ic_t timer, ftm_chnl_t channel, ftm_clock_pre
 
 		// Enables Flex timer -------------------------------------
 		FTM_Init(base, &config);
-		FTM_EnableInterrupts(base, kFTM_Chnl0InterruptEnable|kFTM_TimeOverflowInterruptEnable);
+		FTM_EnableInterrupts(base, kFTM_Chnl0InterruptEnable);
 		// --------------------------------------------------------
 
 		g_init[timer] = true;
