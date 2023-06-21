@@ -53,8 +53,8 @@ void port_initialize_i2c(i2c_name_t n_i2c)
 	CLOCK_EnableClock(g_ports_i2c[n_i2c].clock_port);
 
 	/* PORTB (pin 3) is configured as I2C0_SDA */
-    const port_pin_config_t pin_config = {/* Internal pull-up resistor is enabled */
-                                                    kPORT_PullUp,
+    const port_pin_config_t pin_config = {/* Internal pull resistor is disabled */
+    												kPORT_PullDisable,
                                                     /* Fast slew rate is configured */
                                                     kPORT_FastSlewRate,
                                                     /* Passive filter is disabled */

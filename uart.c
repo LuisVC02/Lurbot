@@ -132,7 +132,7 @@ void UART_send_byte(n_uart_t n_uart, uint8_t byte)
 	UART_WriteByte(g_uarts[(uint8_t)n_uart], byte);
 }
 // ------------------------------------------------------------------
-void UART_send_array_blocking(n_uart_t n_uart, uint8_t *array)
+void callbackFcn(n_uart_t n_uart, uint8_t *array)
 {
 	uint8_t value = array[0];
 	uint16_t index = 0;

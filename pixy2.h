@@ -8,7 +8,6 @@
 #define PIXY2_H_
 
 #include "i2c.h"
-#include "Pixy2LineTracking.h"
 
 #define PIXY_BUFFERSIZE_TX 		6
 #define PIXY_BUFFERSIZE_RX 		40
