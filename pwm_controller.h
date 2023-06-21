@@ -15,6 +15,8 @@
 #define N_CHANNELS 8
 #define timeus_to_duty(time) (100*time)/(1000000/PWM_FRECUENCY)
 
+typedef void(*FTM_callback_t)(void);
+
 typedef enum
 {
 	FlexTimer0_PWM,
@@ -23,7 +25,7 @@ typedef enum
 	FlexTimer3_PWM
 }flex_timer_pwm_t;
 
-void pwm_init(flex_timer_pwm_t timer, ftm_clock_prescale_t prescaler);
+void pwm_init(flex_timer_pwm_t timer, ftm_clock_prescale_t prescaler, FTM_callback_t callback);
 
 void pwm_config(flex_timer_pwm_t timer, ftm_chnl_t channel, ftm_pwm_mode_t pwm_mode, ftm_pwm_level_select_t level, uint32_t frecuency, uint32_t time_us);
 

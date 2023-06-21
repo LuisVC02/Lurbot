@@ -36,17 +36,19 @@
 
 typedef struct _values_to_send_t
 {
-	uint32_t ftm_count;
-	uint32_t speed_x1000;
-	uint32_t speed_sensor_x1000;
+	uint16_t ftm_count;
+	uint16_t speed_ms;
+	uint16_t speed_sensor_ms;
 } values_to_send_t;
 
-void init_traction();
+void init_traction(FTM_callback_t callback);
 
 bool set_speed(float speed);
 
 bool set_pwm_traction_time(uint16_t time);
 
-int8_t get_speed();
+values_to_send_t get_speed();
+
+void control_traction_system(float speed); // Call to discrete system
 
 #endif /* TRACTION_H_ */

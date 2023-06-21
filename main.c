@@ -30,9 +30,12 @@
 
 void automatic_mode();
 void manual_mode();
+void discrete_system();
 
 volatile static channel_controller_t g_control_values;
 volatile static uint8_t              g_speed_divisor   = 1;
+volatile static bool                 g_automatic       = false;
+volatile static values_to_send_t     g_speed_values    = {0};
 
 
 int main()
@@ -42,11 +45,11 @@ int main()
 	// -------------------------------------------------------------------------------
 
 	// Traction initialization -------------------------------------------------------
-	init_traction();
+	init_traction(discrete_system);
 	// -------------------------------------------------------------------------------
 
 	// Direction initialization ------------------------------------------------------
-	init_direction();
+	init_direction(discrete_system);
 	// -------------------------------------------------------------------------------
 
 	// RC initialization -------------------------------------------------------------
@@ -67,7 +70,6 @@ int main()
 	NVIC_enable_interrupt_and_priotity(FTM0_IRQ, PRIORITY_2);
 	NVIC_enable_interrupt_and_priotity(FTM2_IRQ, PRIORITY_5);
 	NVIC_enable_interrupt_and_priotity(UART4_IRQ, PRIORITY_5);
-	NVIC_enable_interrupt_and_priotity(PIT_CH2_IRQ, PRIORITY_6);
 	NVIC_global_enable_interrupts;
 	// -------------------------------------------------------------------------------
 
@@ -122,12 +124,12 @@ int main()
 
 void automatic_mode()
 {
-	set_speed(3.7);
-	set_angle(0);
+	g_automatic = true;
 }
 
 void manual_mode()
 {
+	g_automatic = false;
 	int16_t speed = g_control_values.motor_H << 8;
 	speed |= g_control_values.motor_L;
 	speed -= 1500;
@@ -143,3 +145,12 @@ void manual_mode()
 	set_pwm_direction_time(angle);
 }
 
+void discrete_system()
+{
+	g_speed_values = get_speed();
+	telemetry_send_unblocking(2, (uint8_t*) &g_speed_values.ftm_count);
+	if(true == g_automatic)
+	{
+		control_traction_system(3.7);
+	}
+}
