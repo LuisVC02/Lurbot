@@ -10,11 +10,11 @@
 
 volatile static int8_t g_angle        = 0;
 
-void init_direction()
+void init_direction(FTM_callback_t callback)
 {
 	CLOCK_EnableClock(PORT_CLOCK_DIRECTION);
 	PORT_SetPinMux(PWM_PORT_DIRECTION, PWM_PIN_DIRECTION, PWM_ALTERNATIVE_DIRECTION);
-	pwm_init(PWM_TIMER_DIRECTION, kFTM_Prescale_Divide_4);
+	pwm_init(PWM_TIMER_DIRECTION, kFTM_Prescale_Divide_4, callback);
 	pwm_config(PWM_TIMER_DIRECTION, PWM_CHANNEL_DIRECTION, kFTM_EdgeAlignedPwm, kFTM_HighTrue, PWM_FRECUENCY_DIRECTION, NEUTRAL_PWM_DIRECTION);
 }
 

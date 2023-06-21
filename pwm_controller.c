@@ -18,16 +18,23 @@ const FTM_Type * g_flex_timers_pwm[N_TIMERS] =
 		FTM3
 };
 
-volatile static uint32_t g_clock_frec =  1;
-volatile static uint32_t g_prescaler[N_TIMERS]  =  {0};
-volatile static bool     g_init[N_TIMERS]       =  {0};
+volatile static FTM_callback_t g_callback[N_TIMERS]           = {NULL};
 
-volatile static uint32_t g_new_time[N_TIMERS][N_CHANNELS]    = {0};
-volatile static bool     g_time_change[N_TIMERS][N_CHANNELS] = {0};
+volatile static uint32_t  g_clock_frec =  1;
+volatile static uint32_t  g_timer_frec[N_TIMERS] =  {0};
+volatile static uint32_t  g_prescaler[N_TIMERS]  =  {0};
+volatile static bool      g_init[N_TIMERS]       =  {0};
+
+volatile static uint32_t  g_new_time[N_TIMERS][N_CHANNELS]    = {0};
+volatile static bool      g_time_change[N_TIMERS][N_CHANNELS] = {0};
+volatile static uint32_t *g_new_time_flex0_ch0                =  0;
+volatile static uint32_t *g_new_time_flex0_ch3                =  0;
 
 
 
-void pwm_init(flex_timer_pwm_t timer, ftm_clock_prescale_t prescaler)
+
+
+void pwm_init(flex_timer_pwm_t timer, ftm_clock_prescale_t prescaler, FTM_callback_t callback)
 {
 	static FTM_Type * base;
 	static ftm_config_t config;
@@ -44,6 +51,13 @@ void pwm_init(flex_timer_pwm_t timer, ftm_clock_prescale_t prescaler)
 		config.prescale = prescaler;
 		g_prescaler[timer] = 1 << prescaler;
 		config.bdmMode = kFTM_BdmMode_3;
+		// --------------------------------------------------------
+
+		// Internal initializations -------------------------------
+		g_new_time_flex0_ch0 = (uint32_t*)&g_new_time[FlexTimer0_PWM][0];
+		g_new_time_flex0_ch3 = (uint32_t*)&g_new_time[FlexTimer0_PWM][3];
+		g_timer_frec[timer] = g_clock_frec/g_prescaler[timer];
+		g_callback[timer] = callback;
 		// --------------------------------------------------------
 
 		// Enables Flex timer -------------------------------------
@@ -91,7 +105,6 @@ void pwm_set(flex_timer_pwm_t timer, ftm_chnl_t channel, uint32_t time_us)
 
 	FTM_StopTimer(base);
 	base->CONTROLS[channel].CnV = USEC_TO_COUNT(time_us, g_clock_frec/g_prescaler[timer]);
-	base->CNTIN = 0u;
 	FTM_SetSoftwareTrigger(base, true);
 	FTM_StartTimer(base, kFTM_SystemClock);
 }
@@ -114,8 +127,29 @@ void update_channels(flex_timer_pwm_t timer)
 
 void FTM0_IRQHandler()
 {
-	update_channels(FlexTimer0_PWM);
-	FTM_ClearStatusFlags(FTM0, kFTM_TimeOverflowFlag);
+	FTM_Type * base = FTM0;
+
+	// Stop timer -------------------------------------------------------------------------
+	base->SC &= 0xE7U;
+	// ------------------------------------------------------------------------------------
+	// Put new times in channel value -----------------------------------------------------
+	base->CONTROLS[0].CnV = USEC_TO_COUNT(*g_new_time_flex0_ch0, g_timer_frec[0]);
+	base->CONTROLS[3].CnV = USEC_TO_COUNT(*g_new_time_flex0_ch3, g_timer_frec[0]);
+	// ------------------------------------------------------------------------------------
+	// Software trigger -------------------------------------------------------------------
+	base->SYNC |= FTM_SYNC_SWSYNC_MASK;
+	// ------------------------------------------------------------------------------------
+	// Start timer ------------------------------------------------------------------------
+	base->SC |= 0x08U;
+	// ------------------------------------------------------------------------------------
+
+	// Callbacks --------------------------------------------------------------------------
+	g_callback[FlexTimer0_PWM]();
+	// ------------------------------------------------------------------------------------
+
+	// Clear overflow ---------------------------------------------------------------------
+	base->SC &= ~FTM_SC_TOF_MASK;
+	// ------------------------------------------------------------------------------------
 }
 
 /*

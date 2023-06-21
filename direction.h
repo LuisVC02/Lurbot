@@ -32,7 +32,7 @@
 #define PWM_ALTERNATIVE_DIRECTION kPORT_MuxAlt3
 #define PORT_CLOCK_DIRECTION      kCLOCK_PortA
 
-void init_direction();
+void init_direction(FTM_callback_t callback);
 
 bool set_angle(int16_t angle);
 

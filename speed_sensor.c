@@ -41,22 +41,22 @@ speed_sensor_values_t get_speed_sensor()
 		// Revolutions per second of differential ----------------------------------------------
 		g_values.rpm_diff = FTM_FRECUENCY/g_values.counter;
 		// Revolutions per second of whole -----------------------------------------------------
-		g_values.rpm_whole = g_values.rpm_diff*0.3333333;
+		//g_values.rpm_whole = g_values.rpm_diff*0.3333333;
 		// Speed in meters per second ----------------------------------------------------------
-		g_values.speed_m_s = g_values.rpm_whole*0.22;
+		g_values.speed_m_s = g_values.rpm_whole*0.0733037;
 		// Speed in kilometers per hour --------------------------------------------------------
-		g_values.speed_km_hr = g_values.speed_m_s*0.2777;
+		//g_values.speed_km_hr = g_values.speed_m_s*0.2777;
 	}
 	else
 	{
 		// Revolutions per second of differential ----------------------------------------------
 		g_values.rpm_diff = 0;
 		// Revolutions per second of whole -----------------------------------------------------
-		g_values.rpm_whole = 0;
+		//g_values.rpm_whole = 0;
 		// Speed in meters per second ----------------------------------------------------------
 		g_values.speed_m_s = 0;
 		// Speed in kilometers per hour --------------------------------------------------------
-		g_values.speed_km_hr = 0;
+		//g_values.speed_km_hr = 0;
 	}
 	return g_values;
 }
