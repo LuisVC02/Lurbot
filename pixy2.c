@@ -17,6 +17,9 @@ static volatile transferSend_t * g_buffer_tx_ptr 	= (transferSend_t*)g_buffer_tx
 static volatile transferRecv_t * g_buffer_rx_ptr 	= (transferRecv_t*)g_buffer_rx;
 
 
+
+
+
 volatile static i2c_master_transfer_t g_pixy2TrasferMasterI2C =
 {
 		kI2C_TransferDefaultFlag,		/*!< A transfer flag which controls the transfer. */
@@ -89,6 +92,8 @@ status_t recvTrasferConfig_Pixy2(transferRecv_t* transferConfig)
 
 	return retval;
 }
+
+
 
 //uint8_t sendTrasferConfig_Pixy2()
 //{

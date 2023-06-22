@@ -1,5 +1,5 @@
 /*
- * Pixy2LineTracking.h
+ * This file is for defining the Block struct lineTracking
  *
  *  Created on: 26 abr 2023
  *      Author: otzru

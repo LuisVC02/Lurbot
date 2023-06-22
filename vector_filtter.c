@@ -8,28 +8,40 @@
 
 #include "vector_filtter.h"
 
-static inline direction_t calculateDirection(vector_t vector)
+
+
+
+void findIndexUnderTheshold(vector_t* vectorBuff, uint8_t vecLen )
 {
-	direction_t retDirection = {0};
-	retDirection.angle = 0;
-	retDirection.slope = (vector.m_y1 - vector.m_y0)/(vector.m_x1 - vector.m_x0);
-	return retDirection;
+
+
+
 }
 
-static inline bool validateRangeSlpoe(slope_t max, slope_t min, slope_t slopeToValidate)
+/*!
+ * brief Calculate up screen side.
+ *
+ * note index of vector is modified to store this info.
+ *
+ * param vecBuff 	I2C peripheral base address.
+ * param vecLen 	Pointer to the transfer structure.
+ */
+void validateVectors(vector_t* vecBuff, uint8_t vecLen)
 {
-	bool retval = true;
-	if(slopeToValidate > max)
+	uint8_t i = 0;
+	for(i = 0; i < vecLen; i++)
 	{
-		retval = false;
-	}
+		/* Validate vector begins at the bottom of the screen */
+		if(vecBuff[i].m_y0 < vecBuff[i].m_y1)
+		{
+			swapVector(&vecBuff[i]);
+		}
 
-	if(slopeToValidate < min)
-	{
-		retval = false;
-	}
+		if(vecBuff[i].m_x0)
+		{
 
-	return retval;
+		}
+	}
 }
 
 void getDirectionVecs(vector_t * vecsBuff, uint8_t vecsLen, direction_t * directionBuff)

@@ -34,12 +34,12 @@
 #define PWM_ALTERNATIVE_TRACTION kPORT_MuxAlt4
 #define PORT_CLOCK_TRACTION      kCLOCK_PortC
 
-typedef struct _values_to_send_t
+typedef struct _speed_values_to_send_t
 {
 	uint16_t ftm_count;
 	uint16_t speed_ms;
 	uint16_t speed_sensor_ms;
-} values_to_send_t;
+} speed_values_to_send_t;
 
 void init_traction(FTM_callback_t callback);
 
@@ -47,7 +47,7 @@ bool set_speed(float speed);
 
 bool set_pwm_traction_time(uint16_t time);
 
-values_to_send_t get_speed();
+speed_values_to_send_t get_speed();
 
 void control_traction_system(float speed); // Call to discrete system
 

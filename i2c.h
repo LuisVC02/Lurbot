@@ -16,6 +16,7 @@
 #include "fsl_clock.h"
 #include "fsl_port.h"
 #include "fsl_i2c.h"
+#include <stdbool.h>
 
 typedef enum
 {
