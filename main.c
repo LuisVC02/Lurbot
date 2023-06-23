@@ -96,11 +96,10 @@
 
 typedef struct _valuesToSend
 {
-	speed_values_to_send_t 	speed_values;
-	uint8_t					direction_angle;			/*Angle we set to take curves*/
-	uint8_t					actual_angle;				/*Stands for the actual angle of the servo*/
-	uint8_t 				vectorLen;
-	vector_t*   			vectorPtr;
+	uint8_t  start_value;
+	uint16_t ftm_counter;
+	int8_t   slope;
+	uint8_t  state;
 }valuesToSend_t;
 
 typedef enum
@@ -156,7 +155,7 @@ int main()
 	NVIC_enable_interrupt_and_priotity(DMA_CH0_IRQ, PRIORITY_3);
 	NVIC_enable_interrupt_and_priotity(PIT_CH0_IRQ, PRIORITY_4);
 	NVIC_enable_interrupt_and_priotity(FTM0_IRQ, PRIORITY_2);
-	NVIC_enable_interrupt_and_priotity(FTM2_IRQ, PRIORITY_5);
+	NVIC_enable_interrupt_and_priotity(FTM2_IRQ, PRIORITY_1);
 	NVIC_enable_interrupt_and_priotity(UART4_IRQ, PRIORITY_5);
 	NVIC_global_enable_interrupts;
 	// -------------------------------------------------------------------------------
@@ -235,7 +234,7 @@ void manual_mode()
 
 void discrete_system()
 {
-	static volatile int8_t			bufferSnd[MAX_BUFF] = {0};
+	static volatile valuesToSend_t	bufferSnd           = {0};
 	static vector_t					vectorCopy[MAX_VECS] = {0};
 	featureTypeBuff_t * 			featurePrt 			= NULL;
 	vector_t *						vectorPtr 		 	= NULL;
@@ -263,10 +262,11 @@ void discrete_system()
 	if(true == vectorFlag)
 	{
 		/* Chose where to go, based on slope */
-		bufferSnd[1] = dirr;
+		bufferSnd.slope = dirr;
 	}
-
-	telemetry_send_unblocking(2, (uint8_t *)bufferSnd);
+	bufferSnd.start_value = 236;
+	bufferSnd.ftm_counter = get_speed().ftm_count;
+	telemetry_send_unblocking(2, (uint8_t *)&(bufferSnd.ftm_counter));
 
 //	static volatile valuesToSend_t* bufferSndPtr 		= bufferSnd;
 //	static speed_values_to_send_t	speed_values    	= {0};
@@ -323,6 +323,7 @@ void discrete_system()
 //	telemetry_send_unblocking(9 + featurePrt->featureLen, (uint8_t *)bufferSnd);
 
 	/* Break point */
+
 	i = i;
 
 	if(true == g_automatic)

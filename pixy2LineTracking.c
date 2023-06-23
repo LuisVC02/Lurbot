@@ -19,9 +19,9 @@ featureTypeBuff_t* getMainFeatures_LinePixy2(featureType_t featureType)
 			2,
 			(uint8_t*)buffPayloadLineTracking
 	};
-	static transferRecv_t lineTrackingTrasferRecvConfig = {0};
+	static volatile transferRecv_t lineTrackingTrasferRecvConfig = {0};
 
-	featureTypeBuff_t * featureTypePtr = NULL;
+	volatile featureTypeBuff_t * featureTypePtr = NULL;
 	status_t status = kStatus_Success;
 //	uint8_t * buffPayloadPtr = NULL;
 
@@ -37,7 +37,10 @@ featureTypeBuff_t* getMainFeatures_LinePixy2(featureType_t featureType)
 	{
 		if(LINE_RESPONSE_GET_FEATURES == lineTrackingTrasferRecvConfig.typePack)
 		{
-			featureTypePtr = (featureTypeBuff_t*)lineTrackingTrasferRecvConfig.buffPayload;
+			if(lineTrackingTrasferRecvConfig.payLoadLen > 7)
+			{
+				featureTypePtr = (featureTypeBuff_t*)lineTrackingTrasferRecvConfig.buffPayload;
+			}
 		}
 	}
 	return(featureTypePtr);

@@ -73,21 +73,31 @@ status_t recvTrasferConfig_Pixy2(transferRecv_t* transferConfig)
 
 	if(kStatus_Success == retval)
 	{
-		g_pixy2TrasferMasterI2C.data 		= (uint8_t*)(g_buffer_rx + PIXY_SEND_HEADER_SIZE);
-		g_pixy2TrasferMasterI2C.dataSize 	= g_buffer_rx_ptr->payLoadLen + PIXY_BYTES_OF_DATA_CHECKSUM;
-		retval = I2C_ReadBlocking(I2C_0, (i2c_master_transfer_t*)&g_pixy2TrasferMasterI2C);
+		if(g_buffer_rx_ptr->payLoadLen > 0)
+		{
+			g_pixy2TrasferMasterI2C.data 		= (uint8_t*)(g_buffer_rx + PIXY_SEND_HEADER_SIZE);
+			g_pixy2TrasferMasterI2C.dataSize 	= g_buffer_rx_ptr->payLoadLen + PIXY_BYTES_OF_DATA_CHECKSUM;
+			if(g_pixy2TrasferMasterI2C.dataSize > (PIXY_BUFFERSIZE_RX-PIXY_SEND_HEADER_SIZE))
+			{
+				g_pixy2TrasferMasterI2C.dataSize = PIXY_BUFFERSIZE_RX-PIXY_SEND_HEADER_SIZE;
+			}
+			retval = I2C_ReadBlocking(I2C_0, (i2c_master_transfer_t*)&g_pixy2TrasferMasterI2C);
+		}
 	}
 
 	if(kStatus_Success == retval)
 	{
-		transferConfig->bit1_checkSumSync 	=  g_buffer_rx_ptr->bit1_checkSumSync;
-		transferConfig->bit2_checkSumSync 	=  g_buffer_rx_ptr->bit2_checkSumSync;
-		transferConfig->typePack 			=  g_buffer_rx_ptr->typePack;
-		transferConfig->payLoadLen 			=  g_buffer_rx_ptr->payLoadLen;
-		transferConfig->checkSum 			=  g_buffer_rx_ptr->checkSum;
+		if(g_buffer_rx_ptr->payLoadLen > 0)
+		{
+			transferConfig->bit1_checkSumSync 	=  g_buffer_rx_ptr->bit1_checkSumSync;
+			transferConfig->bit2_checkSumSync 	=  g_buffer_rx_ptr->bit2_checkSumSync;
+			transferConfig->typePack 			=  g_buffer_rx_ptr->typePack;
+			transferConfig->payLoadLen 			=  g_buffer_rx_ptr->payLoadLen;
+			transferConfig->checkSum 			=  g_buffer_rx_ptr->checkSum;
 
-		buffPayLoadPtr = (uint8_t*)&g_buffer_rx_ptr->checkSum;
-		transferConfig->buffPayload 		=  buffPayLoadPtr + PIXY_BYTES_OF_DATA_CHECKSUM;
+			buffPayLoadPtr = (uint8_t*)&g_buffer_rx_ptr->checkSum;
+			transferConfig->buffPayload 		=  buffPayLoadPtr + PIXY_BYTES_OF_DATA_CHECKSUM;
+		}
 	}
 
 	return retval;
