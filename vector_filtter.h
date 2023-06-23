@@ -14,6 +14,14 @@
 
 #define SCREEN_SIDE_BIT_NUM 	0
 #define SCREEN_HEIGHT_BIT_NUM 	1
+#define SCREEN_SIZE_X			78
+#define SCREEN_SIZE_Y			51
+#define ORIGIN_THRESHOLD	 	15
+#define MAX_VECTS				10
+
+#define CALCULATE_SLOPE(Y1,Y0,X1,X0)( (Y1 - Y0)/(X1 - X0) )
+
+
 
 typedef enum
 {
@@ -28,7 +36,7 @@ typedef enum
 }screenHeight_t;
 
 
-typedef int8_t angle_t;
+typedef uint8_t angle_t;
 typedef int8_t slope_t;
 
 typedef struct _direction
@@ -54,24 +62,27 @@ static inline bool validateRangeSlpoe(slope_t max, slope_t min, slope_t slopeToV
 	return retval;
 }
 
-static inline direction_t calculateDirection(vector_t vector)
-{
-	direction_t retDirection = {0};
-	retDirection.angle = 0;
-	if(0 == vector.m_x1 - vector.m_x0)
-	{
-		vector.m_x1++;
-	}
-	retDirection.slope = (vector.m_y1 - vector.m_y0)/(vector.m_x1 - vector.m_x0);
-	return retDirection;
-}
-
-static inline void swapVector(vector_t* vec)
-{
-	vector_t vecTemp = *vec;
-
-
-}
+//static inline direction_t calculateDirection(vector_t vector)
+//{
+//	direction_t retDirection = {0};
+//	retDirection.angle = 0;
+//	if(0 == vector.m_x1 - vector.m_x0)
+//	{
+//		vector.m_x1++;
+//	}
+//	retDirection.slope = (vector.m_y1 - vector.m_y0)/(vector.m_x1 - vector.m_x0);
+//	return retDirection;
+//}
+//
+//static inline void swapOriginVector(vector_t* vec)
+//{
+//	vector_t vecTemp = *vec;
+//	vec->m_x0 = vecTemp.m_x1;
+//	vec->m_x1 = vecTemp.m_x0;
+//	vec->m_y0 = vecTemp.m_x1;
+//	vec->m_y1 = vecTemp.m_x1;
+//
+//}
 
 
 void getDirectionVecs(vector_t * vecsBuff, uint8_t vecsLen, direction_t * directionBuff);
@@ -83,5 +94,7 @@ void filtSlope(
 		slope_t 	maxSlope,
 		slope_t 	minSlope
 		);
+
+bool vectorFilter(vector_t* vectorBuff, uint8_t vecLen, int8_t* slopeFound);
 
 #endif /* VECTOR_FILTTER_H_ */

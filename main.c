@@ -103,6 +103,14 @@ typedef struct _valuesToSend
 	vector_t*   			vectorPtr;
 }valuesToSend_t;
 
+typedef enum
+{
+	noAbleToDeterminate,
+	straightforward,
+	turnRight,
+	turnLeft,
+}states_t;
+
 void automatic_mode();
 void manual_mode();
 void discrete_system();
@@ -227,22 +235,14 @@ void manual_mode()
 
 void discrete_system()
 {
-	static volatile uint8_t			bufferSnd[MAX_BUFF] = {0};
-	static volatile valuesToSend_t* bufferSndPtr 		= bufferSnd;
-	static speed_values_to_send_t	speed_values    	= {0};
-	static vector_t					vectorSnd[MAX_VECS] = {0};
-	static direction_t				dirrBuff[MAX_VECS]	= {0};
-
+	static volatile int8_t			bufferSnd[MAX_BUFF] = {0};
+	static vector_t					vectorCopy[MAX_VECS] = {0};
 	featureTypeBuff_t * 			featurePrt 			= NULL;
 	vector_t *						vectorPtr 		 	= NULL;
-	uint8_t *						uint8Ptr			= NULL;
-	uint8_t *						uint8Ptr2			= NULL;
-	uint8_t 						i 					= 0;
-	uint8_t							cnt					= 0;
 	uint8_t 						vecLen				= 0;
-
-	/* Get speed values*/
-	speed_values 	= get_speed();
+	int8_t 							dirr				= 0;
+	uint8_t 						i					= 0;
+	bool							vectorFlag 			= false;
 
 	/* Get vectors*/
 	featurePrt 	= getMainFeatures_LinePixy2(lineVector);
@@ -252,35 +252,75 @@ void discrete_system()
 		vectorPtr 	= (vector_t*)&featurePrt->featureData;
 		for(i = 0; i < vecLen; i++)
 		{
-			vectorSnd[i] = vectorPtr[i];
+			vectorCopy[i] = vectorPtr[i];
 		}
-		/* Calculate direction of vectors*/
-		getDirectionVecs(vectorSnd, vecLen, dirrBuff);
 	}
+
+	/* Calculate direction of vectors*/
+	vectorFlag = vectorFilter(vectorCopy, vecLen, &dirr);
 
 	/* Fill our Buffer */
-	bufferSndPtr->speed_values 		= speed_values;
-	bufferSndPtr->direction_angle 	= 10;
-	bufferSndPtr->actual_angle 		= 9;
-	bufferSndPtr->vectorLen 		= vecLen*5;
-
-	uint8Ptr = (uint8_t*)&bufferSndPtr->vectorLen;
-	uint8Ptr ++;
-	uint8Ptr2 = (uint8_t*)vectorPtr;
-	for(i = 0; i < vecLen; i++)
+	if(true == vectorFlag)
 	{
-		for(cnt = 0; cnt < 4; cnt++)
-		{
-			uint8Ptr[i*4 + cnt + i] = uint8Ptr2[i*6 + cnt];
-		}
-		uint8Ptr[i*4 + cnt + i + 1] = dirrBuff[i].slope;
-
+		/* Chose where to go, based on slope */
+		bufferSnd[1] = dirr;
 	}
 
+	telemetry_send_unblocking(2, (uint8_t *)bufferSnd);
 
-
-	/* Send Buffer */
-	telemetry_send_unblocking(9 + featurePrt->featureLen, (uint8_t *)bufferSnd);
+//	static volatile valuesToSend_t* bufferSndPtr 		= bufferSnd;
+//	static speed_values_to_send_t	speed_values    	= {0};
+//	static vector_t					vectorSnd[MAX_VECS] = {0};
+//	static direction_t				dirrBuff[MAX_VECS]	= {0};
+//
+//	featureTypeBuff_t * 			featurePrt 			= NULL;
+//	vector_t *						vectorPtr 		 	= NULL;
+//	uint8_t *						uint8Ptr			= NULL;
+//	uint8_t *						uint8Ptr2			= NULL;
+//	uint8_t 						i 					= 0;
+//	uint8_t							cnt					= 0;
+//	uint8_t 						vecLen				= 0;
+//
+//	/* Get speed values*/
+//	speed_values 	= get_speed();
+//
+//	/* Get vectors*/
+//	featurePrt 	= getMainFeatures_LinePixy2(lineVector);
+//	if(NULL != featurePrt)
+//	{
+//		vecLen 		= featurePrt->featureLen/6;
+//		vectorPtr 	= (vector_t*)&featurePrt->featureData;
+//		for(i = 0; i < vecLen; i++)
+//		{
+//			vectorSnd[i] = vectorPtr[i];
+//		}
+//		/* Calculate direction of vectors*/
+//		getDirectionVecs(vectorSnd, vecLen, dirrBuff);
+//	}
+//
+//	/* Fill our Buffer */
+//	bufferSndPtr->speed_values 		= speed_values;
+//	bufferSndPtr->direction_angle 	= 10;
+//	bufferSndPtr->actual_angle 		= 9;
+//	bufferSndPtr->vectorLen 		= vecLen*5;
+//
+//	uint8Ptr = (uint8_t*)&bufferSndPtr->vectorLen;
+//	uint8Ptr ++;
+//	uint8Ptr2 = (uint8_t*)vectorPtr;
+//	for(i = 0; i < vecLen; i++)
+//	{
+//		for(cnt = 0; cnt < 4; cnt++)
+//		{
+//			uint8Ptr[i*4 + cnt + i] = uint8Ptr2[i*6 + cnt];
+//		}
+//		uint8Ptr[i*4 + cnt + i + 1] = dirrBuff[i].slope;
+//
+//	}
+//
+//
+//
+//	/* Send Buffer */
+//	telemetry_send_unblocking(9 + featurePrt->featureLen, (uint8_t *)bufferSnd);
 
 	/* Break point */
 	i = i;
