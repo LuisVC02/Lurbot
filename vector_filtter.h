@@ -16,7 +16,8 @@
 #define SCREEN_HEIGHT_BIT_NUM 	1
 #define SCREEN_SIZE_X			78
 #define SCREEN_SIZE_Y			51
-#define ORIGIN_THRESHOLD	 	15
+#define THRESHOLD	 			15
+#define ORIGIN_THRESHOLD	 	51 - THRESHOLD
 #define MAX_VECTS				10
 
 #define CALCULATE_SLOPE(Y1,Y0,X1,X0)( (Y1 - Y0)/(X1 - X0) )
@@ -37,7 +38,7 @@ typedef enum
 
 
 typedef uint8_t angle_t;
-typedef int8_t slope_t;
+typedef int16_t slope_t;
 
 typedef struct _direction
 {
@@ -95,6 +96,6 @@ void filtSlope(
 		slope_t 	minSlope
 		);
 
-bool vectorFilter(vector_t* vectorBuff, uint8_t vecLen, int8_t* slopeFound);
+bool vectorFilter(vector_t* vectorBuff, uint8_t vecLen, int16_t* slopeFound, uint8_t* validIndexBuff, uint8_t* validIndexLen);
 
 #endif /* VECTOR_FILTTER_H_ */

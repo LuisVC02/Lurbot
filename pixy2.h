@@ -10,7 +10,7 @@
 #include "i2c.h"
 
 #define PIXY_BUFFERSIZE_TX 		6
-#define PIXY_BUFFERSIZE_RX 		40
+#define PIXY_BUFFERSIZE_RX 		44
 #define PIXY_CHECKSUM_SYNC 		0xc1af
 #define PIXY_NO_CHECKSUM_SYNC 	0xc1ae
 

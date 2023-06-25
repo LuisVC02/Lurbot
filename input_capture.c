@@ -7,15 +7,14 @@
  */
 #include "input_capture.h"
 
-volatile static uint32_t g_clock_frec                            =  1;
-volatile static uint32_t g_prescaler[N_TIMERS_IC]                = {0};
-volatile static bool     g_init[N_TIMERS_IC]                     = {0};
-volatile static bool     g_updated[N_TIMERS_IC][N_CHANNELS_IC]   = {0};
-volatile static int32_t g_max_count[N_TIMERS_IC][N_CHANNELS_IC]  = {0};
-volatile static int32_t g_last_value[N_TIMERS_IC][N_CHANNELS_IC] = {0};
+volatile static uint32_t 	g_clock_frec                            	=  1;
+volatile static uint32_t 	g_prescaler[N_TIMERS_IC]                	= {0};
+volatile static bool     	g_init[N_TIMERS_IC]                     	= {0};
+volatile static bool     	g_updated[N_TIMERS_IC][N_CHANNELS_IC]   	= {0};
+volatile static int32_t 	g_max_count[N_TIMERS_IC][N_CHANNELS_IC]  	= {0};
+volatile static int32_t 	g_last_value[N_TIMERS_IC][N_CHANNELS_IC] 	= {0};
 
-volatile static uint32_t g_input_capture[N_TIMERS_IC][N_CHANNELS_IC]    = {0};
-
+volatile static uint32_t 	g_input_capture[N_TIMERS_IC][N_CHANNELS_IC]	= {0};
 
 const FTM_Type * g_flex_timers_ic[N_TIMERS_IC] =
 {
