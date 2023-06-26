@@ -194,7 +194,7 @@ void manual_mode()
 void discrete_system()
 {
 	static vector_t					vectorCopy[MAX_VECS]= {0};
-	static int16_t 					dirr				= 0;
+	static int16_t 					dirr[2]				= {0};
 	uint8_t 						validIndexVecs[MAX_VECS] = {0};
 	uint8_t							validIndexVecsLen = 0;
 	featureTypeBuff_t * 			featurePrt 			= NULL;
@@ -207,6 +207,7 @@ void discrete_system()
 
 	/* Indicate State*/
 	RGB_setColor(red);
+	dirr[0] = 0;
 /*	bufferSnd.terminator[0] = "C";
 	bufferSnd.terminator[0] = "R";*/
 	/* Get vectors*/
@@ -221,14 +222,19 @@ void discrete_system()
 		}
 		RGB_setColor(blue);
 		/* Calculate direction of vectors*/
-		vectorFlag = vectorFilter(vectorCopy, vecLen, &dirr, validIndexVecs, &validIndexVecsLen);
+		vectorFlag = vectorFilter(vectorCopy, vecLen, &dirr[0], validIndexVecs, &validIndexVecsLen);
 
 		/* Fill our Buffer */
 		if(true == vectorFlag)
 		{
 			/* Chose where to go, based on slope */
-			bufferSnd.slope = dirr;
+			bufferSnd.slope = dirr[0];
 			bufferSnd.state = 10;
+			dirr[1] = dirr[0];
+		}
+		else
+		{
+			bufferSnd.slope = dirr[1];
 		}
 	}
 
