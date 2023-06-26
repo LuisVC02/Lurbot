@@ -14,6 +14,32 @@ static volatile transferSend_t g_templateClassTrasferSendConfig = {
 };
 static volatile transferRecv_t g_templateClassTrasferRecvConfig = {0};
 
+bool getVersion( )
+{
+	bool retval = false;
+	status_t status = kStatus_Success;
+	g_templateClassTrasferSendConfig.typePack 	= PIXY_TYPE_REQUEST_VERSION;
+	g_templateClassTrasferSendConfig.payLoadLen = 0;
+
+	status = sendTrasferConfig_Pixy2(g_templateClassTrasferSendConfig);
+	if(kStatus_Success == status)
+	{
+		status = recvTrasferConfig_Pixy2((transferRecv_t*)&g_templateClassTrasferRecvConfig);
+	}
+
+	if(kStatus_Success == status)
+	{
+		if(PIXY_TYPE_RESPONSE_VERSION == g_templateClassTrasferRecvConfig.typePack)
+		{
+			if(g_templateClassTrasferRecvConfig.payLoadLen == 16)
+			{
+				retval = true;
+			}
+		}
+	}
+	return retval;
+
+}
 
 bool setLamp(bool upper, bool lower)
 {
@@ -27,7 +53,7 @@ bool setLamp(bool upper, bool lower)
 	status = sendTrasferConfig_Pixy2(g_templateClassTrasferSendConfig);
 	if(kStatus_Success == status)
 	{
-		status = recvTrasferConfig_Pixy2(&g_templateClassTrasferRecvConfig);
+		status = recvTrasferConfig_Pixy2((transferRecv_t*)&g_templateClassTrasferRecvConfig);
 	}
 
 	if(kStatus_Success == status)

@@ -17,13 +17,13 @@ void telemetry_init()
 	PORT_SetPinMux(PORTC, 12, kPORT_MuxAlt3);
 	uart_config_t configuration =
 	{
-		57600,            // Baudrate
-		kUART_ParityDisabled,     // Parity
+		57600,            			// Baudrate
+		kUART_ParityDisabled,     	// Parity
 		kUART_OneStopBit,    // Stop bit
 		0,					 // FIFO TX wattermark
 		1,					 // FIFO RX wattermark
-		true,				 // Request to send
-		true,				 // Clear to send
+		false,				 // Request to send
+		false,				 // Clear to send
 		kUART_IdleTypeStopBit, // IDLE
 		true,				 // Receptor enable
 		true				 // Transmissor enable

@@ -23,6 +23,7 @@
 #include "pixy2LineTracking.h"
 #include "pixy2TC.h"
 #include "pixy2.h"
+#include "leds.h"
 
 #define AUTO_MODE_CONTROL_VALUE   2000
 #define MANUAL_MODE_CONTROL_VALUE 1000
@@ -54,6 +55,16 @@ void automatic_mode();
 void manual_mode();
 void discrete_system();
 
+static volatile valuesToSend_t	bufferSnd           = {0};
+static volatile valuesToSend_t	bufferSnd2           =
+{
+		1,
+		{{1, 2, 3, 4, 5, 6}, {7, 8, 9, 10, 11, 12}},
+		13,
+		14
+};
+
+
 volatile static channel_controller_t g_control_values;
 volatile static uint8_t              g_speed_divisor   = 1;
 volatile static bool                 g_automatic       = false;
@@ -62,8 +73,15 @@ volatile static bool                 g_automatic       = false;
 
 int main()
 {
+	bool flag = false;
+
 	// CLOCK initialization ----------------------------------------------------------
 	CLOCK_SetSimSafeDivs();
+	// -------------------------------------------------------------------------------
+
+	// LEDs initialization ------------------------------------------------------
+	LEDS_init(false);
+	RGB_setColor(red);
 	// -------------------------------------------------------------------------------
 
 	// Traction initialization -------------------------------------------------------
@@ -88,8 +106,9 @@ int main()
 
 	// Pixy2 initialization ------------------------------------------------------
 	Init_Pixy2();
+	while(!getVersion());
 	setLamp(true, true);
-	// --------------
+	// -------------------------------------------------------------------------------
 
 	// NVIC intialization ------------------------------------------------------------
 	NVIC_enable_interrupt_and_priotity(DMA_CH0_IRQ, PRIORITY_3);
@@ -100,7 +119,7 @@ int main()
 	NVIC_global_enable_interrupts;
 	// -------------------------------------------------------------------------------
 
-
+	RGB_setColor(green);
 	while(1)
 	{
 		g_control_values = get_contol_values();
@@ -174,17 +193,22 @@ void manual_mode()
 
 void discrete_system()
 {
-	static volatile valuesToSend_t	bufferSnd           = {0};
 	static vector_t					vectorCopy[MAX_VECS]= {0};
+	static int16_t 					dirr				= 0;
 	uint8_t 						validIndexVecs[MAX_VECS] = {0};
 	uint8_t							validIndexVecsLen = 0;
 	featureTypeBuff_t * 			featurePrt 			= NULL;
 	vector_t *						vectorPtr 		 	= NULL;
 	uint8_t 						vecLen				= 0;
-	int16_t 						dirr				= 0;
+
 	uint8_t 						i					= 0;
 	bool							vectorFlag 			= false;
 
+
+	/* Indicate State*/
+	RGB_setColor(red);
+/*	bufferSnd.terminator[0] = "C";
+	bufferSnd.terminator[0] = "R";*/
 	/* Get vectors*/
 	featurePrt 	= getMainFeatures_LinePixy2(lineVector);
 	if(NULL != featurePrt)
@@ -195,31 +219,31 @@ void discrete_system()
 		{
 			vectorCopy[i] = vectorPtr[i];
 		}
-	}
+		RGB_setColor(blue);
+		/* Calculate direction of vectors*/
+		vectorFlag = vectorFilter(vectorCopy, vecLen, &dirr, validIndexVecs, &validIndexVecsLen);
 
-	/* Calculate direction of vectors*/
-	vectorFlag = vectorFilter(vectorCopy, vecLen, &dirr, &validIndexVecs, &validIndexVecsLen);
-
-	/* Fill our Buffer */
-	if(true == vectorFlag)
-	{
-		/* Chose where to go, based on slope */
-		bufferSnd.slope = dirr;
-		/* Copy vectors to be send */
-		for(i = 0; i < validIndexVecsLen; i++)
+		/* Fill our Buffer */
+		if(true == vectorFlag)
 		{
-			bufferSnd.main_vecs[i] = vectorCopy[validIndexVecs[i]];
+			/* Chose where to go, based on slope */
+			bufferSnd.slope = dirr;
+			bufferSnd.state = 10;
 		}
-
 	}
 
-	bufferSnd.ftm_counter = get_speed().ftm_count;
-	telemetry_send_unblocking(15, (uint8_t *)&(bufferSnd.main_vecs));
+
+
+	bufferSnd.ftm_counter 	= get_speed().ftm_count;
+
+//	telemetry_send_unblocking(2u, (uint8_t*)&bufferSnd2.slope);
+
+	RGB_setColor(green);
 
 
 	/* Break point */
 	i = 0;
-	if(true == g_automatic)
+/*	if(true == g_automatic)
 	{
 		dirr /= 100;
 		int8_t new_speed = 0;
@@ -237,5 +261,5 @@ void discrete_system()
 		}
 		control_traction_system(5);
 		set_angle(0);
-	}
+	}*/
 }

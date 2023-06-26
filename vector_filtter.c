@@ -87,8 +87,8 @@ bool vectorFilter(vector_t* vectorBuff, uint8_t vecLen, int16_t* slopeFound, uin
 				{
 					vectorBuff[i].m_index = LeftSide << SCREEN_SIDE_BIT_NUM;
 				}
-				float m = ((float)(SCREEN_SIZE_Y - vectorBuff[i].m_y1) - (SCREEN_SIZE_Y - vectorBuff[i].m_y0))/(vectorBuff[i].m_x1 - vectorBuff[i].m_x0);
-				slopenBuff[validIndexLenLoc] = (int16_t)(m*100);
+				float m = ((float) vectorBuff[i].m_x1 - vectorBuff[i].m_x0)/((SCREEN_SIZE_Y - vectorBuff[i].m_y1) - (SCREEN_SIZE_Y - vectorBuff[i].m_y0));
+				slopenBuff[validIndexLenLoc] = (int16_t)(m*1000);
 
 				*slopeFound += slopenBuff[validIndexLenLoc];
 				//

@@ -66,6 +66,7 @@ void GPIO_init(gpio_pin_conf_t );
 
 void GPIO_set_values(gpio_name_t gpio, uint32_t value);
 void GPIO_clear_values(gpio_name_t gpio, uint32_t value);
+void GPIO_toggle_values(gpio_name_t gpio, uint32_t value);
 
 void GPIO_callback_init(gpio_name_t gpio, void (*handler)(uint32_t flags));
 

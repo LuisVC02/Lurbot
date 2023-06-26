@@ -43,6 +43,7 @@
 #define PIXY_RCS_MAX_POS 1000L
 #define PIXY_RCS_CENTER_POS ((PIXY_RCS_MAX_POS - PIXY_RCS_MIN_POS) / 2)
 
+bool getVersion();
 
 /*!
  * brief  Turns on/off Pixy2's integrated light source.
