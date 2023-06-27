@@ -73,8 +73,6 @@ volatile static bool                 g_automatic       = false;
 
 int main()
 {
-	bool flag = false;
-
 	// CLOCK initialization ----------------------------------------------------------
 	CLOCK_SetSimSafeDivs();
 	// -------------------------------------------------------------------------------
@@ -194,20 +192,18 @@ void manual_mode()
 void discrete_system()
 {
 	static vector_t					vectorCopy[MAX_VECS]= {0};
-	static int16_t 					dirr[2]				= {0};
-	uint8_t 						validIndexVecs[MAX_VECS] = {0};
-	uint8_t							validIndexVecsLen = 0;
+	static int16_t 					initial_slope 		=  0;
+	static int16_t 					aux_slope 		    =  0;
 	featureTypeBuff_t * 			featurePrt 			= NULL;
 	vector_t *						vectorPtr 		 	= NULL;
 	uint8_t 						vecLen				= 0;
-
 	uint8_t 						i					= 0;
 	bool							vectorFlag 			= false;
 
 
 	/* Indicate State*/
 	RGB_setColor(red);
-	dirr[0] = 0;
+	initial_slope = 0;
 /*	bufferSnd.terminator[0] = "C";
 	bufferSnd.terminator[0] = "R";*/
 	/* Get vectors*/
@@ -222,50 +218,49 @@ void discrete_system()
 		}
 		RGB_setColor(blue);
 		/* Calculate direction of vectors*/
-		vectorFlag = vectorFilter(vectorCopy, vecLen, &dirr[0], validIndexVecs, &validIndexVecsLen);
+		vectorFlag = vectorFilter(vectorCopy, vecLen, &initial_slope);
 
 		/* Fill our Buffer */
 		if(true == vectorFlag)
 		{
 			/* Chose where to go, based on slope */
-			bufferSnd.slope = dirr[0];
-			bufferSnd.state = 10;
-			dirr[1] = dirr[0];
+			aux_slope = initial_slope;
 		}
 		else
 		{
-			bufferSnd.slope = dirr[1];
+			initial_slope = aux_slope;
 		}
+		bufferSnd.slope = initial_slope;
+		bufferSnd.state = 10;
 	}
-
-
 
 	bufferSnd.ftm_counter 	= get_speed().ftm_count;
 
-//	telemetry_send_unblocking(2u, (uint8_t*)&bufferSnd2.slope);
+	telemetry_send_unblocking(2u, (uint8_t*)&bufferSnd.slope);
 
 	RGB_setColor(green);
 
 
 	/* Break point */
 	i = 0;
-/*	if(true == g_automatic)
+	if(true == g_automatic)
 	{
-		dirr /= 100;
+		initial_slope /= 100;
+		int16_t less  = initial_slope/10;
 		int8_t new_speed = 0;
-		if(dirr < 1)
+		if(initial_slope >= 1)
 		{
-			new_speed = (-10)/dirr;
+			new_speed = (10)/less;
 		}
-		else if(dirr > 1)
+		else if(initial_slope <= -1)
 		{
-			new_speed = 10/dirr;
+			new_speed = (-10)/less;
 		}
 		else
 		{
-			new_speed = 7;
+			new_speed = 5;
 		}
-		control_traction_system(5);
-		set_angle(0);
-	}*/
+		control_traction_system(6);
+		set_angle(initial_slope*(-4));
+	}
 }

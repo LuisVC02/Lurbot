@@ -29,6 +29,22 @@ bool set_angle(int16_t angle)
 		pwm_set_time(PWM_TIMER_DIRECTION, PWM_CHANNEL_DIRECTION, angle);
 		return true;
 	}
+	else
+	{
+		if(MAX_ANGLE_DIRECTION < angle)
+		{
+			angle = MAX_ANGLE_DIRECTION;
+		}
+		else
+		{
+			angle = MIN_ANGLE_DIRECTION;
+		}
+		g_angle = angle * -1;
+		angle *= ANGLE_TO_PWM_GAIN_DIRECTION;
+		angle += NEUTRAL_PWM_DIRECTION;
+		angle += PWM_OFFSET;
+		pwm_set_time(PWM_TIMER_DIRECTION, PWM_CHANNEL_DIRECTION, angle);
+	}
 	return false;
 }
 

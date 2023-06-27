@@ -16,9 +16,10 @@
 #define SCREEN_HEIGHT_BIT_NUM 	1
 #define SCREEN_SIZE_X			78
 #define SCREEN_SIZE_Y			51
-#define THRESHOLD	 			15
+#define THRESHOLD	 			20
 #define ORIGIN_THRESHOLD	 	51 - THRESHOLD
 #define MAX_VECTS				10
+#define VALID_SLOPE             2.5
 
 #define CALCULATE_SLOPE(Y1,Y0,X1,X0)( (Y1 - Y0)/(X1 - X0) )
 
@@ -96,6 +97,6 @@ void filtSlope(
 		slope_t 	minSlope
 		);
 
-bool vectorFilter(vector_t* vectorBuff, uint8_t vecLen, int16_t* slopeFound, uint8_t* validIndexBuff, uint8_t* validIndexLen);
+bool vectorFilter(vector_t* vectorBuff, uint8_t vecLen, int16_t* slopeFound);
 
 #endif /* VECTOR_FILTTER_H_ */
