@@ -11,7 +11,7 @@
 volatile static float 						g_speed    			= 0;
 volatile static bool   						g_auto     			= false;
 volatile static speed_sensor_values_t 		g_speed_values   	= {0};
-volatile static speed_values_to_send_t      	g_values_to_send 	= {0};
+volatile static speed_values_to_send_t      g_values_to_send 	= {0};
 
 
 

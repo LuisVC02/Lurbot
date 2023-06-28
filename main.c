@@ -32,9 +32,10 @@
 #define NORMAL_MODE_CONTROL_VALUE 1500
 #define FAST_MODE_CONTROL_VALUE   2000
 
-#define SLOPE_GAIN_DIRECTION      -6
+#define SLOPE_GAIN_DIRECTION      -8
 #define MID_SCREEN_SIZE           39
 #define SCREEN_SIZE               78
+#define FILTTER_ORDER             2
 
 #define MAX_VECS 10
 #define MAX_BUFF 100
@@ -68,11 +69,19 @@ static volatile valuesToSend_t	bufferSnd2           =
 		14
 };
 
+const float low_pass[(FILTTER_ORDER+1)*2] =
+{1.000000000000000, 1.142980502539901, -0.412801598096189, 0.067455273889072, 0.134910547778144, 0.067455273889072}; //5Hz
 
 volatile static channel_controller_t g_control_values;
 volatile static uint8_t              g_speed_divisor   = 1;
 volatile static bool                 g_automatic       = false;
 volatile static float                g_max_speed       = 0;
+volatile static uint8_t              g_divisor         = 0;
+
+
+volatile static float                g_last_in_slopes[FILTTER_ORDER+1]  = {0};
+volatile static float                g_last_out_slopes[FILTTER_ORDER+1] = {0};
+volatile static int8_t               g_index_filtter                    =  0;
 
 
 int main()
@@ -149,17 +158,20 @@ int main()
 			if(SLOW_MODE_CONTROL_VALUE == speed_mode)
 			{
 				g_speed_divisor = 3;
-				g_max_speed     = 1.5;
+				g_max_speed     = 2.5;
+				g_divisor       = 85;
 			}
 			else if(NORMAL_MODE_CONTROL_VALUE == speed_mode)
 			{
 				g_speed_divisor = 2;
-				g_max_speed     = 1.8;
+				g_max_speed     = 3;
+				g_divisor       = 75;
 			}
 			else
 			{
 				g_speed_divisor = 1;
-				g_max_speed     = 2.3;
+				g_max_speed     = 4;
+				g_divisor       = 50;
 			}
 			// ------------------------------------------------------
 		}
@@ -200,8 +212,8 @@ void discrete_system()
 {
 	static vector_t					vectorCopy[MAX_VECS]= {0};
 	static int16_t 					initial_slope 		=  0;
-	static int16_t 					aux_slope 		    =  0;
-	int8_t                         x_prom              =  0;
+	static float 					aux_slope 		    =  0;
+	int8_t                          x_prom              =  0;
 	featureTypeBuff_t * 			featurePrt 			= NULL;
 	vector_t *						vectorPtr 		 	= NULL;
 	uint8_t 						vecLen				= 0;
@@ -240,23 +252,57 @@ void discrete_system()
 			x_prom = MID_SCREEN_SIZE;
 			validVector = 2;
 		}
-		bufferSnd.slope = initial_slope;
 		bufferSnd.state = 10;
+		bufferSnd.slope = (int16_t)initial_slope;
 	}
+	// Flitter section ------------------------------------------------------------------
+	uint8_t index  = 0;
+	uint8_t valid_index = 0;
+	uint8_t index_filtter = 0;
+	aux_slope     = 0;
+	g_last_in_slopes[g_index_filtter] = initial_slope;
+	g_last_out_slopes[g_index_filtter] = 0;
 
+	for(index = 0, index_filtter = FILTTER_ORDER+1; index <= FILTTER_ORDER; index ++, index_filtter ++)
+	{
+		valid_index = g_index_filtter + index;
+		// Validate index ---------------------------
+		valid_index = (valid_index > FILTTER_ORDER)? (valid_index-FILTTER_ORDER-1):valid_index;
+		// ------------------------------------------
+		if(0 == index)
+		{
+			g_last_out_slopes[g_index_filtter] = low_pass[index_filtter]*g_last_in_slopes[g_index_filtter];
+		}
+		else
+		{
+			g_last_out_slopes[g_index_filtter] += low_pass[index]*g_last_out_slopes[valid_index];
+			g_last_out_slopes[g_index_filtter] += low_pass[index_filtter]*g_last_in_slopes[index];
+		}
+	}
+	aux_slope = (int16_t)g_last_out_slopes[g_index_filtter];
+	if(0 == g_index_filtter)
+	{
+		g_index_filtter = FILTTER_ORDER;
+	}
+	else
+	{
+		g_index_filtter --;
+	}
+	// ----------------------------------------------------------------------------------
 	bufferSnd.ftm_counter 	= (uint16_t)(get_speed().speed_sensor_ms*100);
+	bufferSnd.slope = (int16_t)aux_slope;
 
  	telemetry_send_unblocking(2u, (uint8_t*)&bufferSnd.slope);
 
 	RGB_setColor(green);
 
-
+	initial_slope = aux_slope;
 	/* Break point */
 	i = 0;
 	if(true == g_automatic)
 	{
 		initial_slope     /= 100;
-		int16_t less      = initial_slope/7;
+		float less      = 1.0;
 		float   new_speed = 0;
 		int16_t new_angle = 0;
 
@@ -271,14 +317,16 @@ void discrete_system()
 		}
 		x_prom *= 2;
 
-		if(initial_slope >= 5)
+		if(initial_slope >= 4)
 		{
-			new_speed = (float)(g_max_speed)/less;
+			less -=   ((float)initial_slope/75);
+			new_speed = (float)(g_max_speed)*less;
 			new_angle = (initial_slope*SLOPE_GAIN_DIRECTION);
 		}
-		else if(initial_slope <= -5)
+		else if(initial_slope <= -4)
 		{
-			new_speed = (float)(-1*g_max_speed)/less;
+			less -=   (-(float)initial_slope/75);
+			new_speed = (float)(g_max_speed)*less;
 			new_angle = (initial_slope*SLOPE_GAIN_DIRECTION);
 		}
 		else

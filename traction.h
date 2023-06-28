@@ -21,7 +21,7 @@
 #define MAX_SPEED_TRACTION 50   // In km/hr
 #define MIN_SPEED_TRACTION -30  // In km/hr
 
-#define SPEED_TO_PWM_GAIN_TRACTION 50    // 10 m/s max
+#define SPEED_TO_PWM_GAIN_TRACTION 30    // 10 m/s max
 #define MIN_PWM_TRACTION           1000
 #define NEUTRAL_PWM_TRACTION       1500
 #define MAX_PWM_TRACTION           2000

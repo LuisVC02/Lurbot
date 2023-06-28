@@ -51,8 +51,9 @@ uint8_t vectorFilter(vector_t* vectorBuff, uint8_t vecLen, int16_t* slopeFound, 
 {
 	uint8_t 	retval	   					= 0;
 	uint8_t		i 							= 0;
-	int16_t 	validIndexLenLoc			= 0;
-	slope_t 	slopenBuff[MAX_VECTS] 		= {0};
+	uint8_t 	validIndexLenLoc			= 0;
+	uint8_t 	invalidIndexLenLoc			= 0;
+	int8_t      xPromInvalid                = 0;
 	vector_t    vector                      = {0};
 	vector_t 	vecTemp 					= {0};
 
@@ -67,20 +68,19 @@ uint8_t vectorFilter(vector_t* vectorBuff, uint8_t vecLen, int16_t* slopeFound, 
 		/* ----------------------------------------------- */
 		if(0 == (vector.m_flags & (LINE_FLAG_INVALID | LINE_FLAG_INTERSECTION_PRESENT)))
 		{
+			/*	Swap origin (x0, y0) in case this is higher than final  */
+			if( vector.m_y1 < vector.m_y0)
+			{
+				vecTemp =  vector;
+				vector.m_x0 = vecTemp.m_x1;
+				vector.m_x1 = vecTemp.m_x0;
+				vector.m_y0 = vecTemp.m_y1;
+				vector.m_y1 = vecTemp.m_y0;
+			}
+			float m = ((float)vector.m_x1 - vector.m_x0)/((float)vector.m_y1 - vector.m_y0);
+			/* -------------------------------------------------------- */
 			if(vector.m_y0 < THRESHOLD || vector.m_y1 < THRESHOLD)
 			{
-				/*	Swap origin (x0, y0) in case this is higher than final  */
-				if( vector.m_y1 < vector.m_y0)
-				{
-					vecTemp =  vector;
-					vector.m_x0 = vecTemp.m_x1;
-					vector.m_x1 = vecTemp.m_x0;
-					vector.m_y0 = vecTemp.m_y1;
-					vector.m_y1 = vecTemp.m_y0;
-				}
-				/* -------------------------------------------------------- */
-
-				float m = ((float)vector.m_x1 - vector.m_x0)/((float)vector.m_y1 - vector.m_y0);
 				if(VALID_SLOPE > m && (-VALID_SLOPE) < m)
 				{
 					//validIndexBuff[validIndexLenLoc] = i;
@@ -112,6 +112,11 @@ uint8_t vectorFilter(vector_t* vectorBuff, uint8_t vecLen, int16_t* slopeFound, 
 				//				vectorBuff[i].m_index |= top << SCREEN_HEIGHT_BIT_NUM;
 				//			}
 			}
+			else
+			{
+				xPromInvalid += vector.m_x0;
+				invalidIndexLenLoc++;
+			}
 		}
 	}
 
@@ -122,6 +127,12 @@ uint8_t vectorFilter(vector_t* vectorBuff, uint8_t vecLen, int16_t* slopeFound, 
 		*x_prom     /= validIndexLenLoc;
 		*slopeFound /= validIndexLenLoc;
 		retval = validIndexLenLoc;
+	}
+	else if(invalidIndexLenLoc > 0)
+	{
+		*x_prom      = xPromInvalid/invalidIndexLenLoc;
+		*slopeFound  = 0;
+		retval       = 0;
 	}
 
 	return retval;
