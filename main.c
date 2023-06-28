@@ -33,7 +33,8 @@
 #define FAST_MODE_CONTROL_VALUE   2000
 
 #define SLOPE_GAIN_DIRECTION      -4
-#define MID_SCREEN_SIZE           37
+#define MID_SCREEN_SIZE           39
+#define SCREEN_SIZE               78
 
 #define MAX_VECS 10
 #define MAX_BUFF 100
@@ -200,12 +201,12 @@ void discrete_system()
 	static vector_t					vectorCopy[MAX_VECS]= {0};
 	static int16_t 					initial_slope 		=  0;
 	static int16_t 					aux_slope 		    =  0;
-	uint8_t                         x_prom              =  0;
+	int8_t                         x_prom              =  0;
 	featureTypeBuff_t * 			featurePrt 			= NULL;
 	vector_t *						vectorPtr 		 	= NULL;
 	uint8_t 						vecLen				= 0;
 	uint8_t 						i					= 0;
-	bool							vectorFlag 			= false;
+	uint8_t							validVector			= false;
 
 
 	/* Indicate State*/
@@ -225,17 +226,19 @@ void discrete_system()
 		}
 		RGB_setColor(blue);
 		/* Calculate direction of vectors*/
-		vectorFlag = vectorFilter(vectorCopy, vecLen, &initial_slope, &x_prom);
+		validVector = vectorFilter(vectorCopy, vecLen, &initial_slope, &x_prom);
 
 		/* Fill our Buffer */
-		if(true == vectorFlag)
+		if(0 != validVector)
 		{
 			/* Chose where to go, based on slope */
 			aux_slope = initial_slope;
 		}
 		else
 		{
-			initial_slope = aux_slope;
+			initial_slope = 0;
+			x_prom = MID_SCREEN_SIZE;
+			validVector = 2;
 		}
 		bufferSnd.slope = initial_slope;
 		bufferSnd.state = 10;
@@ -243,7 +246,7 @@ void discrete_system()
 
 	bufferSnd.ftm_counter 	= (uint16_t)(get_speed().speed_sensor_ms*100);
 
-	telemetry_send_unblocking(2u, (uint8_t*)&bufferSnd.slope);
+ 	telemetry_send_unblocking(2u, (uint8_t*)&bufferSnd.slope);
 
 	RGB_setColor(green);
 
@@ -257,15 +260,23 @@ void discrete_system()
 		float   new_speed = 0;
 		int16_t new_angle = 0;
 
-		x_prom            -= MID_SCREEN_SIZE;
-		x_prom            /= -3;
+		if(1 < validVector)
+		{
+			x_prom            = MID_SCREEN_SIZE - x_prom;
+		}
+		else
+		{
+			x_prom            = SCREEN_SIZE - x_prom;
+			x_prom            = (MID_SCREEN_SIZE <= x_prom)?   (-SCREEN_SIZE)+x_prom : x_prom;
+		}
 
-		if(initial_slope >= 3)
+
+		if(initial_slope >= 4)
 		{
 			new_speed = (float)(g_max_speed)/less;
 			new_angle = (initial_slope*SLOPE_GAIN_DIRECTION);
 		}
-		else if(initial_slope <= -3)
+		else if(initial_slope <= -4)
 		{
 			new_speed = (float)(-1*g_max_speed)/less;
 			new_angle = (initial_slope*SLOPE_GAIN_DIRECTION);
@@ -273,7 +284,7 @@ void discrete_system()
 		else
 		{
 			new_speed = g_max_speed;
-			new_angle = 0;
+			new_angle = x_prom;
 		}
 		control_traction_system(new_speed);
 		set_angle(new_angle);

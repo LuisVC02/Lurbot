@@ -97,6 +97,6 @@ void filtSlope(
 		slope_t 	minSlope
 		);
 
-bool vectorFilter(vector_t* vectorBuff, uint8_t vecLen, int16_t* slopeFound, uint8_t * x_prom);
+uint8_t vectorFilter(vector_t* vectorBuff, uint8_t vecLen, int16_t* slopeFound, int8_t * x_prom);
 
 #endif /* VECTOR_FILTTER_H_ */

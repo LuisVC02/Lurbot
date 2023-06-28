@@ -47,9 +47,9 @@ void filtSlope(
 
 /*Function that determinate the direction the car should take based on vectors.*/
 /*Return Left or Right and slope*/
-bool vectorFilter(vector_t* vectorBuff, uint8_t vecLen, int16_t* slopeFound, uint8_t * x_prom)
+uint8_t vectorFilter(vector_t* vectorBuff, uint8_t vecLen, int16_t* slopeFound, int8_t * x_prom)
 {
-	bool 		retval						= false;
+	uint8_t 	retval	   					= 0;
 	uint8_t		i 							= 0;
 	int16_t 	validIndexLenLoc			= 0;
 	slope_t 	slopenBuff[MAX_VECTS] 		= {0};
@@ -121,7 +121,7 @@ bool vectorFilter(vector_t* vectorBuff, uint8_t vecLen, int16_t* slopeFound, uin
 	{
 		*x_prom     /= validIndexLenLoc;
 		*slopeFound /= validIndexLenLoc;
-		retval = true;
+		retval = validIndexLenLoc;
 	}
 
 	return retval;
