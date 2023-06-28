@@ -32,7 +32,7 @@
 #define NORMAL_MODE_CONTROL_VALUE 1500
 #define FAST_MODE_CONTROL_VALUE   2000
 
-#define SLOPE_GAIN_DIRECTION      -4
+#define SLOPE_GAIN_DIRECTION      -6
 #define MID_SCREEN_SIZE           39
 #define SCREEN_SIZE               78
 
@@ -154,12 +154,12 @@ int main()
 			else if(NORMAL_MODE_CONTROL_VALUE == speed_mode)
 			{
 				g_speed_divisor = 2;
-				g_max_speed     = 2.5;
+				g_max_speed     = 1.8;
 			}
 			else
 			{
 				g_speed_divisor = 1;
-				g_max_speed     = 3.5;
+				g_max_speed     = 2.3;
 			}
 			// ------------------------------------------------------
 		}
@@ -256,7 +256,7 @@ void discrete_system()
 	if(true == g_automatic)
 	{
 		initial_slope     /= 100;
-		int16_t less      = initial_slope/5;
+		int16_t less      = initial_slope/7;
 		float   new_speed = 0;
 		int16_t new_angle = 0;
 
@@ -269,14 +269,14 @@ void discrete_system()
 			x_prom            = SCREEN_SIZE - x_prom;
 			x_prom            = (MID_SCREEN_SIZE <= x_prom)?   (-SCREEN_SIZE)+x_prom : x_prom;
 		}
+		x_prom *= 2;
 
-
-		if(initial_slope >= 4)
+		if(initial_slope >= 5)
 		{
 			new_speed = (float)(g_max_speed)/less;
 			new_angle = (initial_slope*SLOPE_GAIN_DIRECTION);
 		}
-		else if(initial_slope <= -4)
+		else if(initial_slope <= -5)
 		{
 			new_speed = (float)(-1*g_max_speed)/less;
 			new_angle = (initial_slope*SLOPE_GAIN_DIRECTION);
