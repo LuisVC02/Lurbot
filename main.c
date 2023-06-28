@@ -32,6 +32,9 @@
 #define NORMAL_MODE_CONTROL_VALUE 1500
 #define FAST_MODE_CONTROL_VALUE   2000
 
+#define SLOPE_GAIN_DIRECTION      -4
+#define MID_SCREEN_SIZE           37
+
 #define MAX_VECS 10
 #define MAX_BUFF 100
 
@@ -68,7 +71,7 @@ static volatile valuesToSend_t	bufferSnd2           =
 volatile static channel_controller_t g_control_values;
 volatile static uint8_t              g_speed_divisor   = 1;
 volatile static bool                 g_automatic       = false;
-
+volatile static float                g_max_speed       = 0;
 
 
 int main()
@@ -145,14 +148,17 @@ int main()
 			if(SLOW_MODE_CONTROL_VALUE == speed_mode)
 			{
 				g_speed_divisor = 3;
+				g_max_speed     = 1.5;
 			}
 			else if(NORMAL_MODE_CONTROL_VALUE == speed_mode)
 			{
 				g_speed_divisor = 2;
+				g_max_speed     = 2.5;
 			}
 			else
 			{
 				g_speed_divisor = 1;
+				g_max_speed     = 3.5;
 			}
 			// ------------------------------------------------------
 		}
@@ -194,6 +200,7 @@ void discrete_system()
 	static vector_t					vectorCopy[MAX_VECS]= {0};
 	static int16_t 					initial_slope 		=  0;
 	static int16_t 					aux_slope 		    =  0;
+	uint8_t                         x_prom              =  0;
 	featureTypeBuff_t * 			featurePrt 			= NULL;
 	vector_t *						vectorPtr 		 	= NULL;
 	uint8_t 						vecLen				= 0;
@@ -218,7 +225,7 @@ void discrete_system()
 		}
 		RGB_setColor(blue);
 		/* Calculate direction of vectors*/
-		vectorFlag = vectorFilter(vectorCopy, vecLen, &initial_slope);
+		vectorFlag = vectorFilter(vectorCopy, vecLen, &initial_slope, &x_prom);
 
 		/* Fill our Buffer */
 		if(true == vectorFlag)
@@ -234,7 +241,7 @@ void discrete_system()
 		bufferSnd.state = 10;
 	}
 
-	bufferSnd.ftm_counter 	= get_speed().ftm_count;
+	bufferSnd.ftm_counter 	= (uint16_t)(get_speed().speed_sensor_ms*100);
 
 	telemetry_send_unblocking(2u, (uint8_t*)&bufferSnd.slope);
 
@@ -245,22 +252,30 @@ void discrete_system()
 	i = 0;
 	if(true == g_automatic)
 	{
-		initial_slope /= 100;
-		int16_t less  = initial_slope/10;
-		int8_t new_speed = 0;
-		if(initial_slope >= 1)
+		initial_slope     /= 100;
+		int16_t less      = initial_slope/5;
+		float   new_speed = 0;
+		int16_t new_angle = 0;
+
+		x_prom            -= MID_SCREEN_SIZE;
+		x_prom            /= -3;
+
+		if(initial_slope >= 3)
 		{
-			new_speed = (10)/less;
+			new_speed = (float)(g_max_speed)/less;
+			new_angle = (initial_slope*SLOPE_GAIN_DIRECTION);
 		}
-		else if(initial_slope <= -1)
+		else if(initial_slope <= -3)
 		{
-			new_speed = (-10)/less;
+			new_speed = (float)(-1*g_max_speed)/less;
+			new_angle = (initial_slope*SLOPE_GAIN_DIRECTION);
 		}
 		else
 		{
-			new_speed = 5;
+			new_speed = g_max_speed;
+			new_angle = 0;
 		}
-		control_traction_system(6);
-		set_angle(initial_slope*(-4));
+		control_traction_system(new_speed);
+		set_angle(new_angle);
 	}
 }

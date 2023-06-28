@@ -21,7 +21,7 @@
 #define MAX_SPEED_TRACTION 50   // In km/hr
 #define MIN_SPEED_TRACTION -30  // In km/hr
 
-#define SPEED_TO_PWM_GAIN_TRACTION 10.0
+#define SPEED_TO_PWM_GAIN_TRACTION 50    // 10 m/s max
 #define MIN_PWM_TRACTION           1000
 #define NEUTRAL_PWM_TRACTION       1500
 #define MAX_PWM_TRACTION           2000
@@ -37,8 +37,8 @@
 typedef struct _speed_values_to_send_t
 {
 	uint16_t ftm_count;
-	uint16_t speed_ms;
-	uint16_t speed_sensor_ms;
+	float speed_ms;
+	float speed_sensor_ms;
 } speed_values_to_send_t;
 
 void init_traction(FTM_callback_t callback);

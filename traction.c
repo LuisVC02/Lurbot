@@ -51,8 +51,8 @@ speed_values_to_send_t get_speed()
 	speed_sensor_values_t speed_values = get_speed_sensor();
 	speed_values_to_send_t values_to_send = {
 			speed_values.counter,
-			(uint16_t)(speed_values.speed_m_s),
-			(uint16_t)(g_speed)
+			g_speed,
+			speed_values.speed_m_s,
 	};
 	return values_to_send;
 }
