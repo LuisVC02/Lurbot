@@ -114,8 +114,11 @@ uint8_t vectorFilter(vector_t* vectorBuff, uint8_t vecLen, int16_t* slopeFound, 
 			}
 			else
 			{
-				xPromInvalid += vector.m_x0;
-				invalidIndexLenLoc++;
+				if(VALID_SLOPE > m && (-VALID_SLOPE) < m)
+				{
+					xPromInvalid += vector.m_x0;
+					invalidIndexLenLoc++;
+				}
 			}
 		}
 	}
@@ -132,7 +135,7 @@ uint8_t vectorFilter(vector_t* vectorBuff, uint8_t vecLen, int16_t* slopeFound, 
 	{
 		*x_prom      = xPromInvalid/invalidIndexLenLoc;
 		*slopeFound  = 0;
-		retval       = 0;
+		retval       = invalidIndexLenLoc;
 	}
 
 	return retval;

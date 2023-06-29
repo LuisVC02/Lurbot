@@ -32,7 +32,9 @@
 #define NORMAL_MODE_CONTROL_VALUE 1500
 #define FAST_MODE_CONTROL_VALUE   2000
 
-#define SLOPE_GAIN_DIRECTION      -8
+#define SLOPE_GAIN_DIRECTION_1    -4
+#define SLOPE_GAIN_DIRECTION_2    -5
+#define SLOPE_GAIN_DIRECTION_3    -6
 #define MID_SCREEN_SIZE           39
 #define SCREEN_SIZE               78
 #define FILTTER_ORDER             2
@@ -69,9 +71,12 @@ static volatile valuesToSend_t	bufferSnd2           =
 		14
 };
 
-const float low_pass[(FILTTER_ORDER+1)*2] =
-{1.000000000000000, 1.142980502539901, -0.412801598096189, 0.067455273889072, 0.134910547778144, 0.067455273889072}; //5Hz
-
+const float low_pass[3][(FILTTER_ORDER+1)*2] =
+{
+{1.000000000000000, 1.142980502539901, -0.412801598096189, 0.067455273889072, 0.134910547778144, 0.067455273889072}, //5Hz
+{1.000000000000000, 1.647459981076977, -0.700896781188403 ,0.013359200027857, 0.026718400055713, 0.013359200027856}, //2Hz
+{1.000000000000000, 0.369527377351241, -0.195815712655833 ,0.206572083826148, 0.413144167652296, 0.206572083826148}  //10Hz
+};
 volatile static channel_controller_t g_control_values;
 volatile static uint8_t              g_speed_divisor   = 1;
 volatile static bool                 g_automatic       = false;
@@ -82,6 +87,8 @@ volatile static uint8_t              g_divisor         = 0;
 volatile static float                g_last_in_slopes[FILTTER_ORDER+1]  = {0};
 volatile static float                g_last_out_slopes[FILTTER_ORDER+1] = {0};
 volatile static int8_t               g_index_filtter                    =  0;
+volatile static int8_t               g_gain_direction 					=  0;
+volatile static uint8_t              g_filtter                          =  0;
 
 
 int main()
@@ -93,6 +100,15 @@ int main()
 	// LEDs initialization ------------------------------------------------------
 	LEDS_init(false);
 	RGB_setColor(red);
+	gpio_pin_conf_t config =
+	{
+			GPIO_D,
+			4,
+			true,
+			false,
+			InterrupDisable
+	};
+	GPIO_init(config);
 	// -------------------------------------------------------------------------------
 
 	// Traction initialization -------------------------------------------------------
@@ -136,7 +152,11 @@ int main()
 		g_control_values = get_contol_values();
 
 		uint16_t speed_mode = g_control_values.sw2_H << 8;
+		uint16_t gain_direction = g_control_values.sw3_H<<8;
+		uint16_t filter_select  = g_control_values.sw4_H<<8;
 		speed_mode |= g_control_values.sw2_L;
+		gain_direction |= g_control_values.sw3_L;
+		filter_select  |= g_control_values.sw4_L;
 
 		uint16_t mode = g_control_values.sw1_H << 8;
 		mode |= g_control_values.sw1_L;
@@ -158,20 +178,47 @@ int main()
 			if(SLOW_MODE_CONTROL_VALUE == speed_mode)
 			{
 				g_speed_divisor = 3;
-				g_max_speed     = 2.5;
-				g_divisor       = 85;
+				g_max_speed     = 3;
+				g_divisor       = 30;
+				g_gain_direction = SLOPE_GAIN_DIRECTION_1;
 			}
 			else if(NORMAL_MODE_CONTROL_VALUE == speed_mode)
 			{
 				g_speed_divisor = 2;
-				g_max_speed     = 3;
-				g_divisor       = 75;
+				g_max_speed     = 3.5;
+				g_divisor       = 20;
+				g_gain_direction = SLOPE_GAIN_DIRECTION_2;
 			}
 			else
 			{
 				g_speed_divisor = 1;
 				g_max_speed     = 4;
-				g_divisor       = 50;
+				g_divisor       = 10;
+				g_gain_direction = SLOPE_GAIN_DIRECTION_3;
+			}
+			// ------------------------------------------------------
+			// Select gain of direction -----------------------------
+			if(SLOW_MODE_CONTROL_VALUE == gain_direction)
+			{
+				g_filtter = 0;
+			}
+			else if(NORMAL_MODE_CONTROL_VALUE == gain_direction)
+			{
+				g_filtter = 1;
+			}
+			else
+			{
+				g_filtter = 2;
+			}
+			// ------------------------------------------------------
+			if(SLOW_MODE_CONTROL_VALUE == filter_select)
+			{
+
+				GPIO_clear_values(GPIO_D, 1<<4);
+			}
+			else
+			{
+				GPIO_set_values(GPIO_D, 1<<4);
 			}
 			// ------------------------------------------------------
 		}
@@ -271,12 +318,12 @@ void discrete_system()
 		// ------------------------------------------
 		if(0 == index)
 		{
-			g_last_out_slopes[g_index_filtter] = low_pass[index_filtter]*g_last_in_slopes[g_index_filtter];
+			g_last_out_slopes[g_index_filtter] = low_pass[g_filtter][index_filtter]*g_last_in_slopes[g_index_filtter];
 		}
 		else
 		{
-			g_last_out_slopes[g_index_filtter] += low_pass[index]*g_last_out_slopes[valid_index];
-			g_last_out_slopes[g_index_filtter] += low_pass[index_filtter]*g_last_in_slopes[index];
+			g_last_out_slopes[g_index_filtter] += low_pass[g_filtter][index]*g_last_out_slopes[valid_index];
+			g_last_out_slopes[g_index_filtter] += low_pass[g_filtter][index_filtter]*g_last_in_slopes[index];
 		}
 	}
 	aux_slope = (int16_t)g_last_out_slopes[g_index_filtter];
@@ -315,26 +362,27 @@ void discrete_system()
 			x_prom            = SCREEN_SIZE - x_prom;
 			x_prom            = (MID_SCREEN_SIZE <= x_prom)?   (-SCREEN_SIZE)+x_prom : x_prom;
 		}
-		x_prom *= 2;
-
+		//x_prom *= 2;
 		if(initial_slope >= 4)
 		{
-			less -=   ((float)initial_slope/75);
+			less -=   ((float)initial_slope/g_divisor);
 			new_speed = (float)(g_max_speed)*less;
-			new_angle = (initial_slope*SLOPE_GAIN_DIRECTION);
+			new_angle = (initial_slope*g_gain_direction);
 		}
 		else if(initial_slope <= -4)
 		{
-			less -=   (-(float)initial_slope/75);
+			less -=   (-(float)initial_slope/g_divisor);
 			new_speed = (float)(g_max_speed)*less;
-			new_angle = (initial_slope*SLOPE_GAIN_DIRECTION);
+			new_angle = (initial_slope*g_gain_direction);
 		}
 		else
 		{
 			new_speed = g_max_speed;
+			//new_angle = 0;
 			new_angle = x_prom;
 		}
 		control_traction_system(new_speed);
 		set_angle(new_angle);
 	}
+
 }
